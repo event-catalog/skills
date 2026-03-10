@@ -2,7 +2,7 @@
 
 A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) that help you document your architectures.
 
-> Contributions welcome! Run into a problem or have a question? [Open an issue](https://github.com/event-catalog/eventcatalog-skills/issues).
+> Contributions welcome! Run into a problem or have a question? [Open an issue](https://github.com/event-catalog/skills/issues).
 
 ## Available Skills
 
@@ -18,10 +18,10 @@ Use [npx skills](https://github.com/vercel-labs/skills) to install skills direct
 
 ```bash
 # Install all skills
-npx add-skill https://github.com/event-catalog/eventcatalog-skills
+npx skills https://github.com/event-catalog/skills
 
 # Install a specific skill
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/catalog-documentation-creator
+npx skills https://github.com/event-catalog/skills/tree/main/skills/catalog-documentation-creator
 ```
 
 ### Option 2: Clone and Copy
@@ -29,7 +29,7 @@ npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/ski
 Clone the entire repo and copy the skills you need:
 
 ```bash
-git clone https://github.com/event-catalog/eventcatalog-skills.git
+git clone https://github.com/event-catalog/skills.git
 cp -r eventcatalog-skills/skills/catalog-documentation-creator .claude/skills/
 ```
 
@@ -38,7 +38,7 @@ cp -r eventcatalog-skills/skills/catalog-documentation-creator .claude/skills/
 Add as a submodule for easy updates:
 
 ```bash
-git submodule add https://github.com/event-catalog/eventcatalog-skills.git .claude/skills/eventcatalog
+git submodule add https://github.com/event-catalog/skills.git .claude/skills/eventcatalog
 ```
 
 ### Option 4: Fork and Customize
