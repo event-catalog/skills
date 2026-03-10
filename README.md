@@ -18,10 +18,10 @@ Use [npx skills](https://github.com/vercel-labs/skills) to install skills direct
 
 ```bash
 # Install all skills
-npx skills https://github.com/event-catalog/skills
+npx skills add event-catalog/skills
 
 # Install a specific skill
-npx skills https://github.com/event-catalog/skills/tree/main/skills/catalog-documentation-creator
+npx skills add event-catalog/skills --skill catalog-documentation-creator
 ```
 
 ### Option 2: Clone and Copy
