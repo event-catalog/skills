@@ -1,152 +1,76 @@
-# EventCatalog AI Agent Skills
+# EventCatalog AI Skills
 
-> **Note:** This repository is currently in testing/experimental phase as we learn and experiment with AI agent skills. Rules and structure may change as we gather feedback and refine the approach. Contributions and feedback are welcome!
+A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) that help you document your architectures.
 
-A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) that help developers write better documentation, follow best practices, and use the SDK correctly.
-
-These skills follow the [Vercel Agent Skills](https://github.com/vercel/agents) format and can be installed via `npx add-skill`.
-
-## Installation
-
-Install all skills at once:
-
-```bash
-npx add-skill https://github.com/event-catalog/eventcatalog-skills
-```
-
-Or install individual skills:
-
-```bash
-# Project setup (start here for new projects)
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/eventcatalog-project-setup
-
-# Documentation best practices
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/eventcatalog-documentation-best-practices
-
-# SDK usage
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/eventcatalog-sdk-usage
-
-# Catalog structure
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/eventcatalog-catalog-structure
-
-# Event-driven architecture documentation
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/event-driven-architecture-documentation
-
-# Components reference
-npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/eventcatalog-components-reference
-```
+> Contributions welcome! Run into a problem or have a question? [Open an issue](https://github.com/event-catalog/eventcatalog-skills/issues).
 
 ## Available Skills
 
-### 1. EventCatalog Project Setup (15 rules)
+| Skill | Description |
+|-------|-------------|
+| [catalog-documentation-creator](skills/catalog-documentation-creator/) | Generates EventCatalog documentation files (services, events, commands, queries, domains, flows, channels, containers) with correct frontmatter, folder structure, and best practices. |
 
-Guide for creating and bootstrapping new EventCatalog projects from scratch.
+## Installation
 
-**Categories:**
-- Project Initialization (Critical)
-- Configuration (Critical)
-- First Resources (High)
-- Users & Teams (High)
-- Content Bootstrap (Medium)
+### Option 1: CLI Install (Recommended)
 
-**Use when:**
-- Creating a brand new EventCatalog project
-- Setting up initial directory structure and configuration
-- Adding your first domains, services, and events
-- Defining users and teams for ownership
+Use [npx skills](https://github.com/vercel-labs/skills) to install skills directly:
 
-### 2. EventCatalog Documentation Best Practices (16 rules)
+```bash
+# Install all skills
+npx add-skill https://github.com/event-catalog/eventcatalog-skills
 
-Guidelines for writing high-quality EventCatalog MDX documentation.
+# Install a specific skill
+npx add-skill https://github.com/event-catalog/eventcatalog-skills/tree/main/skills/catalog-documentation-creator
+```
 
-**Categories:**
-- Frontmatter Structure (Critical)
-- Content Structure (High)
-- Documentation Quality (Medium)
-- Metadata & Organization (Medium)
+### Option 2: Clone and Copy
 
-**Use when:**
-- Creating documentation for new events, services, domains
-- Reviewing existing documentation for best practices
-- Adding proper cross-references and visual components
+Clone the entire repo and copy the skills you need:
 
-### 3. EventCatalog SDK Usage (15 rules)
+```bash
+git clone https://github.com/event-catalog/eventcatalog-skills.git
+cp -r eventcatalog-skills/skills/catalog-documentation-creator .claude/skills/
+```
 
-Correct usage of `@eventcatalog/sdk` for programmatic catalog manipulation.
+### Option 3: Git Submodule
 
-**Categories:**
-- SDK Initialization (Critical)
-- Reading Resources (High)
-- Writing Resources (High)
-- Advanced Operations (Medium)
-- Utility Functions (Medium)
+Add as a submodule for easy updates:
 
-**Use when:**
-- Writing generators for AsyncAPI/OpenAPI specs
-- Automation scripts for catalog updates
-- Migration scripts between catalog versions
+```bash
+git submodule add https://github.com/event-catalog/eventcatalog-skills.git .claude/skills/eventcatalog
+```
 
-### 4. EventCatalog Catalog Structure (15 rules)
+### Option 4: Fork and Customize
 
-Proper directory structure, organization, and naming conventions.
+Fork the repo and tailor skills to your team's conventions:
 
-**Categories:**
-- Directory Structure (Critical)
-- Domain Organization (High)
-- Naming Conventions (High)
-- Supporting Files (Medium)
-- Configuration (Medium)
+1. Fork this repository
+2. Modify skills to fit your needs
+3. Install from your fork:
+   ```bash
+   npx add-skill https://github.com/YOUR_ORG/eventcatalog-skills
+   ```
 
-**Use when:**
-- Setting up new catalogs
-- Reorganizing existing catalogs
-- Adding new resource types
+## Usage Examples
 
-### 5. Event-Driven Architecture Documentation (15 rules)
+Once installed, the skills are automatically available to your AI agent. Here are some things you can ask:
 
-EDA/DDD best practices applied to EventCatalog documentation.
+**Document a service:**
+> "Document my OrderService that receives OrderCreated events and sends OrderConfirmed events"
 
-**Categories:**
-- Message Types (Critical)
-- Service Relationships (High)
-- Channel Documentation (High)
-- Flow Documentation (Medium)
-- Entity & Domain Modeling (Medium)
+**Create a full domain:**
+> "Create a Payments domain with a PaymentService, PaymentProcessed event, and ProcessPayment command"
 
-**Use when:**
-- Deciding between event vs command
-- Documenting service relationships correctly
-- Setting up DDD-style domain structure
+**Document from your codebase:**
+> "Look at my src/ directory and generate EventCatalog documentation for the services and events you find"
 
-### 6. EventCatalog Components Reference (15 rules)
+**Add a business flow:**
+> "Document the checkout flow from cart submission through payment processing to order confirmation"
 
-Reference guide for EventCatalog's built-in MDX components.
-
-**Categories:**
-- Visualization Components (Critical)
-- Data Display Components (High)
-- Layout Components (Medium)
-- Content Components (Medium)
-- Advanced Components (Low)
-
-**Use when:**
-- Adding architecture diagrams
-- Displaying message tables and schemas
-- Creating navigation tiles and collapsible sections
-
-## Rule Priority Levels
-
-| Priority | Description |
-|----------|-------------|
-| CRITICAL | Must follow - breaking issues or major problems if ignored |
-| HIGH | Should follow - significant impact on quality or functionality |
-| MEDIUM | Recommended - improves quality and maintainability |
-| LOW | Nice to have - minor improvements |
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines and submit pull requests to the repository.
+**Scaffold a new catalog:**
+> "I don't have an EventCatalog yet, help me create one and document my architecture"
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT
