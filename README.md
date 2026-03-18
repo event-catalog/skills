@@ -9,6 +9,7 @@ A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) tha
 | Skill | Description |
 |-------|-------------|
 | [catalog-documentation-creator](skills/catalog-documentation-creator/) | Generates EventCatalog documentation files (services, events, commands, queries, domains, flows, channels, containers) with correct frontmatter, folder structure, and best practices. |
+| [flow-wizard](skills/flow-wizard/) | Interactive, conversational skill that guides you through documenting business flows step-by-step, cross-referencing your existing catalog resources. |
 
 ## Installation
 
