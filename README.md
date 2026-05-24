@@ -8,9 +8,9 @@ A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) tha
 
 | Skill | Description |
 |-------|-------------|
-| [catalog-documentation-creator](skills/catalog-documentation-creator/) | Generates EventCatalog documentation files (services, events, commands, queries, domains, flows, channels, containers) with correct frontmatter, folder structure, and best practices. |
-| [code-to-catalog](skills/code-to-catalog/) | Scans a codebase, grills you interview-style on the architectural model (domains, services, messages, boundaries), produces a plan file, then hands off to catalog-documentation-creator. Works for new catalogs and for reconciling existing catalogs with drifted code. |
-| [flow-wizard](skills/flow-wizard/) | Interactive, conversational skill that guides you through documenting business flows step-by-step, cross-referencing your existing catalog resources. |
+| [catalog-documentation-creator](skills/catalog-documentation-creator/) | Generates EventCatalog documentation files (services, agents, events, commands, queries, domains, flows, channels, containers) with correct frontmatter, folder structure, and best practices. |
+| [code-to-catalog](skills/code-to-catalog/) | Scans a codebase, grills you interview-style on the architectural model (domains, services, agents, messages, boundaries), produces a plan file, then hands off to catalog-documentation-creator. Works for new catalogs and for reconciling existing catalogs with drifted code. |
+| [flow-wizard](skills/flow-wizard/) | Interactive, conversational skill that guides you through documenting business and agent flows step-by-step, cross-referencing your existing catalog resources. |
 
 ## Installation
 
@@ -61,6 +61,9 @@ Once installed, the skills are automatically available to your AI agent. Here ar
 **Document a service:**
 > "Document my OrderService that receives OrderCreated events and sends OrderConfirmed events"
 
+**Document an agent:**
+> "Document my Order Support Agent that receives OrderCancelled events, reads the orders database, and uses Zendesk MCP tools"
+
 **Create a full domain:**
 > "Create a Payments domain with a PaymentService, PaymentProcessed event, and ProcessPayment command"
 
@@ -69,6 +72,9 @@ Once installed, the skills are automatically available to your AI agent. Here ar
 
 **Add a business flow:**
 > "Document the checkout flow from cart submission through payment processing to order confirmation"
+
+**Map an agent workflow:**
+> "Map the fraud review flow where the FraudReviewAgent checks risk signals before payment capture"
 
 **Scaffold a new catalog:**
 > "I don't have an EventCatalog yet, help me create one and document my architecture"
