@@ -8,6 +8,7 @@ A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) tha
 
 | Skill | Description |
 |-------|-------------|
+| [c4-to-eventcatalog](skills/c4-to-eventcatalog/) | Converts C4 architecture models (Structurizr DSL/JSON, C4-PlantUML, Mermaid C4, diagrams, or architecture descriptions) into an EventCatalog mapping plan, then hands off to catalog-documentation-creator to generate or update catalog files. |
 | [catalog-documentation-creator](skills/catalog-documentation-creator/) | Generates EventCatalog documentation files (services, agents, events, commands, queries, domains, flows, channels, containers) with correct frontmatter, folder structure, and best practices. |
 | [code-to-catalog](skills/code-to-catalog/) | Scans a codebase, grills you interview-style on the architectural model (domains, services, agents, messages, boundaries), produces a plan file, then hands off to catalog-documentation-creator. Works for new catalogs and for reconciling existing catalogs with drifted code. |
 | [flow-wizard](skills/flow-wizard/) | Interactive, conversational skill that guides you through documenting business and agent flows step-by-step, cross-referencing your existing catalog resources. |
@@ -69,6 +70,9 @@ Once installed, the skills are automatically available to your AI agent. Here ar
 
 **Document from your codebase:**
 > "Look at my src/ directory and generate EventCatalog documentation for the services and events you find"
+
+**Map a C4 model:**
+> "Use this Structurizr DSL file to map our C4 model into my existing EventCatalog"
 
 **Add a business flow:**
 > "Document the checkout flow from cart submission through payment processing to order confirmation"
