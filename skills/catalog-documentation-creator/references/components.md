@@ -19,6 +19,9 @@ Use double square brackets to create inline links to any resource. These render 
 | Flow | `[[flow\|Name]]` | `[[flow\|PaymentFlow]]` |
 | Channel | `[[channel\|Name]]` | `[[channel\|OrderChannel]]` |
 | Entity | `[[entity\|Name]]` or `[[Name]]` | `[[entity\|Order]]` or `[[Order]]` |
+| Data Product | `[[data-product\|Name]]` | `[[data-product\|order-analytics]]` |
+| ADR | `[[adr\|Name]]` | `[[adr\|adr-001-choose-event-driven-orders]]` |
+| Diagram | `[[diagram\|Name]]` | `[[diagram\|order-flow]]` |
 | Container | `[[container\|Name]]` | `[[container\|payments-db]]` |
 | User | `[[user\|Name]]` | `[[user\|dboyne]]` |
 | Team | `[[team\|Name]]` | `[[team\|backend-team]]` |
@@ -35,7 +38,8 @@ The [[service|OrdersService]] handles all order processing and publishes
 [[event|OrderCreated]] when an order is placed. It integrates with
 [[service|PaymentService]] for payment processing, works with
 [[agent|OrderSupportAgent]] for support workflows, and writes to the
-[[container|orders-db]] database.
+[[container|orders-db]] database. See [[adr|adr-001-choose-event-driven-orders]]
+for the architecture decision and [[diagram|order-flow]] for the sequence diagram.
 ```
 
 Use resource references liberally in documentation body text to create a connected, navigable catalog.
