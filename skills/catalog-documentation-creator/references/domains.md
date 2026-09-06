@@ -3,9 +3,11 @@
 ## Format
 
 **File:** `index.mdx` inside a domain folder
-**Location:** `domains/{DomainName}/index.mdx`
+**Location:** `domains/{DomainName}/index.mdx`, or a subdomain at `domains/{DomainName}/subdomains/{SubdomainName}/index.mdx`
 
-Domains can contain subdomains, systems, services, agents, flows, and other resources nested inside them.
+Domains can contain subdomains, systems, services, agents, flows, and other resources nested inside them. Subdomains use `domains/*/subdomains/...` nesting (not a second top-level `domains/` folder). Ubiquitous language can live on a domain or a subdomain: `domains/{Domain}/ubiquitous-language.mdx` or `domains/{Domain}/subdomains/{Subdomain}/ubiquitous-language.mdx`.
+
+Current version: `{domain}/index.mdx`. Historical versions: `{domain}/versioned/{semver}/index.mdx` (same pattern for subdomains).
 
 ## Frontmatter Fields
 
@@ -36,9 +38,11 @@ Domains support deep nesting:
 ```
 domains/E-Commerce/
   index.mdx                          # Domain definition
+  ubiquitous-language.mdx            # Domain glossary
   subdomains/
     Orders/
       index.mdx                      # Subdomain definition
+      ubiquitous-language.mdx        # Subdomain glossary
       systems/
         CheckoutSystem/
           index.mdx
@@ -145,6 +149,8 @@ FlowMart's E-Commerce domain enables:
 
 ## Key Conventions
 
+- Nest subdomains at `domains/{Domain}/subdomains/{Subdomain}/` (not `domains/{Subdomain}/` unless it is a top-level domain)
+- Put `ubiquitous-language.mdx` on the domain and on any subdomain that has its own glossary
 - Use `domains` field when a domain has subdomains
 - Use `systems` to list systems that belong to this domain
 - Use `services` and `agents` fields to list direct domain services and agents that are not nested under a system

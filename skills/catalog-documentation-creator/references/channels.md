@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside a channel folder
 **Location:** `channels/{ChannelName}/index.mdx` or nested under a service `services/{Service}/channels/{ChannelName}/index.mdx`
 
+Current version: `{channel}/index.mdx`. Historical versions: `{channel}/versioned/{semver}/index.mdx`.
+
 ## Frontmatter Fields
 
 | Field | Required | Description |

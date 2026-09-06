@@ -1,11 +1,15 @@
 # Containers
 
-Containers represent infrastructure components that services interact with — databases, caches, message queues, object stores, read models, etc.
+Containers represent infrastructure components that services interact with — databases, caches, object stores, search indexes, warehouses, lakes, external SaaS stores, and other data stores.
+
+Message queues, topics, and event buses are **channels**, not containers.
 
 ## Format
 
 **File:** `index.mdx` inside a container folder
 **Location:** `containers/{ContainerName}/index.mdx`, nested under a service (`services/{ServiceName}/containers/{ContainerName}/index.mdx`), or nested under a system (`systems/{System}/containers/{ContainerName}/index.mdx`, `domains/{Domain}/systems/{System}/containers/{ContainerName}/index.mdx`)
+
+Current version: `{container}/index.mdx`. Historical versions: `{container}/versioned/{semver}/index.mdx`.
 
 ## Frontmatter Fields
 
@@ -15,10 +19,11 @@ Containers represent infrastructure components that services interact with — d
 | `name` | Yes | Human-readable name |
 | `version` | Yes | Semver string (e.g., `0.0.1`) |
 | `summary` | Yes | Brief description of what this container stores/does |
-| `container_type` | No | Type of container (e.g., `database`, `cache`, `queue`, `storage`) |
+| `container_type` | Yes | MUST be one of: `database`, `cache`, `objectStore`, `searchIndex`, `dataWarehouse`, `dataLake`, `externalSaaS`, `other`. Do not invent values such as `queue` or `storage`. |
 | `technology` | No | Technology and version (e.g., `postgres@14`, `redis@7`, `elasticsearch@8`) |
+| `purpose` | No | Short purpose statement (e.g., `system of record`, `read model`) |
 | `authoritative` | No | `true` if this is the system of record, `false` for read models/projections |
-| `access_mode` | No | `read`, `readWrite`, or `write` |
+| `access_mode` | No | MUST be one of: `read`, `write`, `readWrite`, `appendOnly` |
 | `classification` | No | MUST be one of: `public`, `internal`, `confidential`, `regulated` |
 | `retention` | No | Data retention period (e.g., `5y`, `30d`, `indefinite`) |
 | `residency` | No | Data residency/region (e.g., `eu-west-1`) |
