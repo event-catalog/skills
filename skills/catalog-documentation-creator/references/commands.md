@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside a command folder
 **Location:** `commands/{CommandName}/index.mdx` or nested under a service `domains/{Domain}/services/{Service}/commands/{CommandName}/index.mdx`
 
+Current version: `{command}/index.mdx`. Historical versions: `{command}/versioned/{semver}/index.mdx`.
+
 ## Frontmatter Fields
 
 | Field | Required | Description |
@@ -14,7 +16,8 @@
 | `version` | Yes | Semver string (e.g., `0.0.1`) |
 | `summary` | Yes | 1-2 sentence description of what this command does |
 | `owners` | Yes | Array of team or user IDs |
-| `schemaPath` | No | Path to schema file (e.g., `schema.json`) |
+| `schemaPath` | No | Simple path to a schema or spec file next to `index.mdx` (e.g., `schema.json`, `schema.graphql`) |
+| `specifications` | No | Object with `openapiPath` / `asyncapiPath` / `graphqlPath`, **or** an array of `{ type, path, name? }` where `type` is `openapi`, `asyncapi`, or `graphql` |
 | `badges` | No | Array of badge objects |
 | `operation` | No | Object with `method`, `path`, and `statusCodes` for REST operations |
 

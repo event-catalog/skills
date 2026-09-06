@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside an ADR folder
 **Location:** `adrs/{adr-id}/index.mdx`, or nested near the resource it applies to, e.g. `domains/{Domain}/systems/{System}/adrs/{adr-id}/index.mdx`
 
+Current version: `{adr}/index.mdx`. Historical versions: `{adr}/versioned/{semver}/index.mdx`.
+
 ADRs are first-class, versioned EventCatalog resources for documenting significant architecture decisions and linking them to the resources they affect.
 
 ## Frontmatter Fields

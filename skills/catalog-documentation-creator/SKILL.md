@@ -4,7 +4,7 @@ description: Generates EventCatalog documentation files (systems, services, agen
 license: MIT
 metadata:
   author: eventcatalog
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # EventCatalog Documentation Creator
@@ -47,7 +47,7 @@ Ask the user what they want to document. Common scenarios:
 - A full domain with nested services
 - A business flow across services and agents
 - A channel (Kafka topic, RabbitMQ queue, etc.)
-- A container (database, cache, queue)
+- A container (database, cache, object store, search index, warehouse, lake, or SaaS store)
 - An architecture decision record (ADR)
 - A data product for analytics, reporting, ML features, or operational data outputs
 - A domain entity or aggregate
@@ -102,7 +102,7 @@ Generate files following the resource-specific references. Consult the appropria
 - `references/domains.md` — Domains with subdomains, services, and business context
 - `references/flows.md` — Business flows with steps, branching, and external systems
 - `references/channels.md` — Channels with routing, protocols, and parameters
-- `references/containers.md` — Containers (databases, caches, queues) with data classification
+- `references/containers.md` — Containers (databases, caches, object stores, and other `container_type` values) with data classification
 - `references/adrs.md` — Architecture decision records with status, date, decision makers, appliesTo, and relationships
 - `references/data-products.md` — Data products with inputs, outputs, data contracts, lineage, and SLAs
 - `references/entities.md` — DDD/domain entities with identifiers, properties, relationships, and aggregate roots
@@ -120,7 +120,18 @@ Every resource file MUST include:
 - `version` as semantic version string
 - `summary` as a concise 1-2 sentence description
 
-CRITICAL: Always use `index.mdx` as the filename for versioned resources (systems, services, agents, events, commands, queries, domains, flows, channels, containers, ADRs, data products, entities, diagrams). Teams and users use `{id}.mdx` files directly. Changelogs use `changelog.mdx` or `changelog.md`. Ubiquitous language uses `ubiquitous-language.mdx`. Place files in the correct folder path following the nested structure pattern:
+CRITICAL: Always use `index.mdx` as the filename for versioned resources (systems, services, agents, events, commands, queries, domains, flows, channels, containers, ADRs, data products, entities, diagrams). Teams and users use `{id}.mdx` files directly. Changelogs use `changelog.mdx` or `changelog.md`. Ubiquitous language uses `ubiquitous-language.mdx` (including under subdomains).
+
+Versioned collections load the **current** version from `{resource}/index.mdx` (or `index.md`) and **historical** versions from `{resource}/versioned/{semver}/index.mdx`. EventCatalog globs `**/versioned/*/index.(md|mdx)` for those older copies. Do not invent a flat `OrdersService-1.0.0.mdx` filename for history.
+
+```
+services/{ServiceName}/index.mdx
+services/{ServiceName}/versioned/0.0.1/index.mdx
+domains/{DomainName}/index.mdx
+domains/{DomainName}/versioned/1.0.0/index.mdx
+```
+
+Place files in the correct folder path following the nested structure pattern:
 
 ```
 domains/{DomainName}/systems/{SystemName}/index.mdx
@@ -131,6 +142,8 @@ domains/{DomainName}/agents/{AgentName}/index.mdx
 domains/{DomainName}/data-products/{DataProductName}/index.mdx
 domains/{DomainName}/entities/{EntityName}/index.mdx
 domains/{DomainName}/diagrams/{DiagramName}/index.mdx
+domains/{DomainName}/subdomains/{SubdomainName}/index.mdx
+domains/{DomainName}/subdomains/{SubdomainName}/ubiquitous-language.mdx
 ```
 
 Or flat structure if the catalog uses that pattern:
@@ -222,7 +235,7 @@ When a user wants to document a full domain:
 5. Generate each message referenced by the services and agents
 6. Generate entities, data products, diagrams, and channels if the user describes them
 7. Use the nested folder structure: `domains/{Domain}/systems/{System}/`, `domains/{Domain}/systems/{System}/services/{Service}/events/{Event}/`, `domains/{Domain}/services/{Service}/events/{Event}/`, `domains/{Domain}/agents/{Agent}/`, `domains/{Domain}/entities/{Entity}/`, and `domains/{Domain}/data-products/{DataProduct}/`
-8. Generate a `ubiquitous-language.mdx` file for the domain by extracting domain-specific terms from service names, agent names, event/command names, entities, and business processes. Place it at `domains/{Domain}/ubiquitous-language.mdx`. See `references/ubiquitous-language.md` for format and examples.
+8. Generate a `ubiquitous-language.mdx` file for the domain by extracting domain-specific terms from service names, agent names, event/command names, entities, and business processes. Place it at `domains/{Domain}/ubiquitous-language.mdx`, or at `domains/{Domain}/subdomains/{Subdomain}/ubiquitous-language.mdx` when the glossary belongs to a subdomain. See `references/ubiquitous-language.md` for format and examples.
 9. CRITICAL: After generating all files, verify the domain's frontmatter `systems` field lists every system, `services` lists every direct domain service, and `agents` lists every direct domain agent that belongs to it. Every system, service, or agent created directly under a domain MUST be referenced in the domain's `index.mdx`:
    ```yaml
    systems:
@@ -285,7 +298,7 @@ When a user describes a multi-step process:
 
 1. Identify distinct steps (user actions, service calls, message exchanges, external systems)
 2. Generate the flow `index.mdx` with `steps` array
-3. Each step should have `id`, `title`, and appropriate type (`actor`, `service`, `agent`, `message`, `externalSystem`)
+3. Each step should have `id` and `title`. Discriminate the step with at most one pointer field (`message`, `service`, `agent`, `actor`, `externalSystem`, `container`, `flow`, `dataProduct`, or `custom`) — or none for a plain node. Optional `type` is only `node | message | agent | user | actor` (not a pointer name).
 4. Connect steps with `next_step` or `next_steps` for branching
 
 ### Documenting Channel Routing
@@ -314,11 +327,11 @@ Before delivering documentation to the user, verify every file against this chec
 8. Schema references point to real files
 9. Folder structure follows catalog conventions
 10. No duplicate resources (checked against existing catalog)
-11. Versioned resources use `index.mdx` (or match the catalog's existing `.md`/`.mdx` convention); teams and users use `{id}.mdx`; changelogs use `changelog.mdx`/`changelog.md`
+11. Versioned resources use `index.mdx` (or match the catalog's existing `.md`/`.mdx` convention) at `{resource}/index.mdx` for the current version, and `{resource}/versioned/{semver}/index.mdx` for older versions; teams and users use `{id}.mdx`; changelogs use `changelog.mdx`/`changelog.md`
 12. Every domain has at least one system, service, or agent — never create an empty domain
 13. Domain `systems`, `services`, and `agents` frontmatter lists every direct system, service, and agent that belongs to that domain
 14. Domain `entities`, `data-products`, `flows`, and `diagrams` frontmatter lists nested resources when present
-15. Every domain has a `ubiquitous-language.mdx` file with relevant domain terms extracted from services, agents, events, commands, entities, data products, and business processes
+15. Every domain (and documented subdomain) has a `ubiquitous-language.mdx` file with relevant domain terms extracted from services, agents, events, commands, entities, data products, and business processes
 16. ADRs have a valid status, date, decision makers when known, and `appliesTo` references for impacted resources
 17. System `scope`, relationship pointers, and actor directions are valid when systems are generated
 18. Data product contract files referenced in `outputs.contract.path` exist when generated

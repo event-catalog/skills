@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside an entity folder
 **Location:** `entities/{EntityName}/index.mdx`, `domains/{Domain}/entities/{EntityName}/index.mdx`, `services/{Service}/entities/{EntityName}/index.mdx`, or nested under a system (`systems/{System}/entities/{EntityName}/index.mdx`, `domains/{Domain}/systems/{System}/entities/{EntityName}/index.mdx`)
 
+Current version: `{entity}/index.mdx`. Historical versions: `{entity}/versioned/{semver}/index.mdx`.
+
 Entities document domain concepts, aggregates, business objects, and persisted models. They are useful for DDD catalogs, data model documentation, and service-owned concepts.
 
 ## Frontmatter Fields
