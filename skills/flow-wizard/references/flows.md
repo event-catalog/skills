@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside a flow folder
 **Location:** `flows/{FlowName}/index.mdx` or nested under a resource (e.g Domain) `domains/{Domain}/flows/{FlowName}/index.mdx`, or nested in any directory `flows/Payments/MyPaymentFlow/{FlowName}/index.mdx`
 
+Current version: `{flow}/index.mdx`. Historical versions: `{flow}/versioned/{semver}/index.mdx`.
+
 ## Frontmatter Fields
 
 | Field | Required | Description |
@@ -16,17 +18,41 @@
 | `owners` | No | Array of team or user IDs |
 | `steps` | Yes | Array of step objects defining the flow |
 
-## Step Types
+## Step model
 
-Each step has an `id`, `title`, and one of five types:
+Each step has `id` and `title`. Discrimination is **not** via a `type` value of `actor` / `service` / `externalSystem`. Use **pointer fields** instead.
 
-| Type | Field | Use When |
-|------|-------|----------|
-| Actor | `actor: { name }` | A person or external entity initiates an action |
-| Message | `message: { id, version }` | An event, command, or query is exchanged |
-| Service | `service: { id, version }` | A service processes something |
-| Agent | `agent: { id, version }` | An AI agent reasons, invokes tools, or automates part of the process |
-| External System | `externalSystem: { name, summary, url }` | A third-party system is involved |
+A step may have **exactly one** of these pointer-like fields, or **none** (a plain node):
+
+| Pointer field | Shape | Use when |
+|---------------|-------|----------|
+| `message` | `{ id, version? }` | An event, command, or query is exchanged |
+| `service` | `{ id, version? }` | A catalog service processes something |
+| `agent` | `{ id, version? }` | An AI agent reasons, invokes tools, or automates part of the process |
+| `actor` | `{ name, summary? }` | A person or role initiates an action |
+| `externalSystem` | `{ name, summary?, url? }` | A third-party system is involved |
+| `container` | `{ id, version? }` | A data store / container is involved |
+| `flow` | `{ id, version? }` | Another catalog flow is invoked |
+| `dataProduct` | `{ id, version? }` | A data product is produced or consumed |
+| `custom` | `{ title, icon?, type?, summary?, url?, color?, properties?, height?, menu? }` | A custom node that is not one of the above |
+
+Optional visual `type` (separate from pointers) is only: `node | message | agent | user | actor`. Do not set `type: service` or `type: externalSystem` — those names are pointer fields, not `type` values.
+
+```yaml
+# Pointer only (usual)
+- id: "subscription_service"
+  title: "Subscription Service"
+  service:
+    id: "SubscriptionService"
+    version: "0.0.1"
+
+# Optional visual type + pointer
+- id: "cancel_subscription_initiated"
+  title: "Cancels Subscription"
+  type: actor
+  actor:
+    name: "User"
+```
 
 ## Step Transitions
 
@@ -125,5 +151,6 @@ steps:
 - Use `summary` on steps for additional context
 - The body is typically just `<NodeGraph />` — the flow visualization is auto-generated from the steps
 - Message IDs in steps must match actual event/command/query IDs in the catalog
-- Service IDs in steps must match actual service IDs in the catalog
-- Agent IDs in steps must match actual agent IDs in the catalog
+- Service, agent, container, flow, and data product IDs in steps must match catalog resources
+- Use at most one pointer field per step; omit pointers for a plain descriptive node
+- If `type` is set, it must be `node`, `message`, `agent`, `user`, or `actor`

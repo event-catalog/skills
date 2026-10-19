@@ -3,7 +3,9 @@
 ## Format
 
 **File:** `index.mdx` inside a service folder
-**Location:** `services/{ServiceName}/index.mdx`, `domains/{Domain}/services/{ServiceName}/index.mdx`, `systems/{System}/services/{ServiceName}/index.mdx`, or `domains/{Domain}/systems/{System}/services/{ServiceName}/index.mdx`
+**Location:** `services/{ServiceName}/index.mdx`, `domains/{Domain}/services/{ServiceName}/index.mdx`, `domains/{Domain}/subdomains/{Subdomain}/services/{ServiceName}/index.mdx`, `systems/{System}/services/{ServiceName}/index.mdx`, or `domains/{Domain}/systems/{System}/services/{ServiceName}/index.mdx`
+
+Current version: `{service}/index.mdx`. Historical versions: `{service}/versioned/{semver}/index.mdx`.
 
 ## Frontmatter Fields
 
@@ -14,11 +16,11 @@
 | `version` | Yes | Semver string (e.g., `0.0.1`) |
 | `summary` | Yes | 1-2 sentence description of the service |
 | `owners` | Yes | Array of team or user IDs |
-| `sends` | No | Array of messages this service produces |
-| `receives` | No | Array of messages this service consumes |
+| `sends` | No | Array of messages this service produces. Each pointer may include optional `fields: string[]` for field-level lineage |
+| `receives` | No | Array of messages this service consumes. Each pointer may include optional `fields: string[]` for field-level lineage |
 | `repository` | No | Object with `language` and `url` |
-| `schemaPath` | No | Path to OpenAPI/AsyncAPI spec file |
-| `specifications` | No | Array of spec objects with `type`, `path`, `name` |
+| `schemaPath` | No | Simple path to a spec or schema file next to `index.mdx` (OpenAPI, AsyncAPI, GraphQL, or other) |
+| `specifications` | No | Object with `openapiPath` / `asyncapiPath` / `graphqlPath`, **or** an array of `{ type, path, name? }` where `type` is `openapi`, `asyncapi`, or `graphql` |
 | `writesTo` | No | Array of containers/databases the service writes to |
 | `readsFrom` | No | Array of containers/databases the service reads from |
 | `entities` | No | Array of entities this service owns or exposes |
@@ -53,6 +55,51 @@ sends:
     to:
       - id: orders-domain-eventbus
       - id: analytics-eventbus
+```
+
+## Field-level lineage
+
+`sends` and `receives` pointers accept optional `fields: string[]` when you know which payload fields this service produces or consumes:
+
+```yaml
+sends:
+  - id: OrderConfirmed
+    fields:
+      - orderId
+      - customerId
+      - total
+receives:
+  - id: InventoryAdjusted
+    fields:
+      - productId
+      - quantity
+```
+
+## Specifications
+
+Use `schemaPath` for a single file next to `index.mdx`. Use `specifications` when the service has OpenAPI, AsyncAPI, and/or GraphQL:
+
+```yaml
+# Simple path
+schemaPath: openapi-v1.yml
+
+# Object form
+specifications:
+  openapiPath: openapi-v1.yml
+  asyncapiPath: order-service-asyncapi.yaml
+  graphqlPath: schema.graphql
+
+# Array form (type must be openapi | asyncapi | graphql)
+specifications:
+  - type: openapi
+    path: openapi-v1.yml
+    name: v1 API
+  - type: asyncapi
+    path: order-service-asyncapi.yaml
+    name: AsyncAPI
+  - type: graphql
+    path: schema.graphql
+    name: Orders GraphQL
 ```
 
 ## Example 1: Service with Channel Routing
@@ -103,6 +150,9 @@ specifications:
   - type: openapi
     path: openapi-v1.yml
     name: v1 API
+  - type: graphql
+    path: schema.graphql
+    name: Orders GraphQL
 ---
 
 ## Overview

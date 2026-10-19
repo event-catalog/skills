@@ -7,16 +7,20 @@ EventCatalog supports documenting ubiquitous language terms per domain as a glos
 ## Format
 
 **File:** `ubiquitous-language.mdx` (NOT `index.mdx`)
-**Location:** Inside a domain folder: `domains/{DomainName}/ubiquitous-language.mdx`
+**Location:** Inside a domain folder: `domains/{DomainName}/ubiquitous-language.mdx`, or inside a subdomain: `domains/{DomainName}/subdomains/{SubdomainName}/ubiquitous-language.mdx`
 
 This file uses YAML frontmatter only — the body is typically empty.
 
 ## Frontmatter Fields
 
-The frontmatter contains a single `dictionary` array:
+| Field | Required | Description |
+|-------|----------|-------------|
+| `editUrl` | No | Optional URL to edit this ubiquitous-language file (file-level) |
+| `dictionary` | No | Array of glossary terms for this domain or subdomain |
 
 ```yaml
 ---
+editUrl: https://github.com/example/catalog/edit/main/domains/Orders/ubiquitous-language.mdx
 dictionary:
   - id: TermName
     name: Term Name
@@ -25,8 +29,11 @@ dictionary:
       Detailed explanation of the term, its business context,
       and how it's used within this domain.
     icon: LucideIconName
+    editUrl: https://wiki.example.com/glossary/term-name
 ---
 ```
+
+`editUrl` is optional on the **file** and on **each dictionary term** (per-term links can point at a wiki, design doc, or source of truth).
 
 ### Term Fields
 
@@ -37,6 +44,7 @@ dictionary:
 | `summary` | Yes | Brief one-line description (under 125 characters) |
 | `description` | No | Detailed multi-line explanation in markdown |
 | `icon` | No | Lucide icon name (from lucide.dev) — e.g., `FileText`, `Package`, `Tag`, `Receipt` |
+| `editUrl` | No | Optional URL to edit or view this term's source |
 
 ## When to Generate Ubiquitous Language
 
@@ -48,7 +56,7 @@ When documenting a domain, analyze the services, agents, events, commands, and c
 - **Processes and workflows** — `Checkout`, `Return`, `Refund`, `Settlement`
 - **Technical terms with domain-specific meaning** — terms that mean something specific in this context vs. general usage
 
-CRITICAL: Always generate a `ubiquitous-language.mdx` file when creating a domain. Extract terms from the services, agents, events, commands, and any codebase or documentation the user provides.
+CRITICAL: Always generate a `ubiquitous-language.mdx` file when creating a domain. If you also document a subdomain at `domains/{Domain}/subdomains/{Subdomain}/`, generate `ubiquitous-language.mdx` there too when that subdomain has its own glossary. Extract terms from the services, agents, events, commands, and any codebase or documentation the user provides.
 
 ## Example: Orders Domain
 
@@ -227,7 +235,8 @@ dictionary:
 
 ## Key Conventions
 
-- One `ubiquitous-language.mdx` file per domain
+- One `ubiquitous-language.mdx` file per domain, plus one per subdomain that has its own glossary
+- File-level `editUrl` and per-term `editUrl` are both optional
 - Terms automatically appear in the domain sidebar in EventCatalog
 - Keep summaries under 125 characters
 - Use Lucide icons (browse at lucide.dev) to make terms visually distinct

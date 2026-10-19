@@ -4,7 +4,7 @@ description: Guides users through documenting business flows step-by-step in Eve
 license: MIT
 metadata:
   author: eventcatalog
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Flow Documentation Wizard
@@ -59,15 +59,21 @@ For each section, ask something like:
 
 As the user describes what happens, you need to:
 
-#### A. Identify the Step Type
+#### A. Identify the Step Pointer
 
-From their description, determine which flow step type(s) this section involves:
+From their description, determine which **pointer field** each generated step should use. Do not treat these names as values of a `type` field.
 
-- **Actor** — a person or role does something (e.g., "the user clicks sign up", "the admin approves")
-- **Service** — a service in their architecture processes something (e.g., "our auth service handles registration")
-- **Agent** — an AI agent reasons, invokes tools, or automates part of the process (e.g., "the refund agent reviews the case")
-- **Message** — an event, command, or query is exchanged (e.g., "a UserRegistered event is fired")
-- **External System** — a third-party system is involved (e.g., "we call Stripe for payment", "Twilio sends the SMS")
+- **`actor`** — a person or role does something (e.g., "the user clicks sign up", "the admin approves")
+- **`service`** — a service in their architecture processes something (e.g., "our auth service handles registration")
+- **`agent`** — an AI agent reasons, invokes tools, or automates part of the process (e.g., "the refund agent reviews the case")
+- **`message`** — an event, command, or query is exchanged (e.g., "a UserRegistered event is fired")
+- **`externalSystem`** — a third-party system is involved (e.g., "we call Stripe for payment", "Twilio sends the SMS")
+- **`container`** — a database, cache, or other data store is involved
+- **`flow`** — another documented business flow is invoked
+- **`dataProduct`** — a data product is produced or consumed
+- **`custom`** — a node that is not one of the above (use `custom.title` and optional icon/summary/url)
+
+A step may also have **no pointer** (a plain node). Optional visual `type` is only `node | message | agent | user | actor`.
 
 A single section may produce multiple steps (e.g., a user action triggers a command, which is handled by a service, which emits an event).
 
@@ -96,13 +102,15 @@ If they say yes, use the resource's actual `id` and `version` in the flow step.
 > Which one fits, or is this something new?
 
 **If you find no match**, that's perfectly fine. Document it as a descriptive step:
-- If it sounds like a service, use `service` type with a suggested ID and note it's not yet in the catalog
-- If it sounds like an AI agent, use `agent` type with a suggested ID and note it's not yet in the catalog
-- If it sounds like a message, use `message` type with a suggested ID
-- If it's a person/role, use `actor` type
-- If it's a third-party tool/API, use `externalSystem` type
+- If it sounds like a service, use the `service` pointer with a suggested ID and note it's not yet in the catalog
+- If it sounds like an AI agent, use the `agent` pointer with a suggested ID and note it's not yet in the catalog
+- If it sounds like a message, use the `message` pointer with a suggested ID
+- If it's a person/role, use the `actor` pointer
+- If it's a third-party tool/API, use the `externalSystem` pointer
+- If it's a data store, use the `container` pointer
+- If none of the above fit, use `custom` or omit the pointer
 
-Let the user know: **"I didn't find this in your catalog. I'll document it as [step type] for now. You can create the full resource later if you'd like."**
+Let the user know: **"I didn't find this in your catalog. I'll document it with a [pointer] for now. You can create the full resource later if you'd like."**
 
 #### C. Confirm Each Section Before Moving On
 
@@ -166,7 +174,7 @@ Once the user confirms, generate the flow `index.mdx` file following the format 
 
 **Rules for generation:**
 
-1. Use the user's catalog directory. Ask where the flow should be saved if unclear — either `flows/{FlowName}/index.mdx` or `domains/{Domain}/flows/{FlowName}/index.mdx` depending on their catalog structure.
+1. Use the user's catalog directory. Ask where the flow should be saved if unclear — either `flows/{FlowName}/index.mdx` or `domains/{Domain}/flows/{FlowName}/index.mdx` depending on their catalog structure. The current version is `{flow}/index.mdx`; older versions go under `{flow}/versioned/{semver}/index.mdx`.
 
 2. For **matched resources** (found in catalog), use the exact `id` and `version` from the catalog:
    ```yaml
@@ -213,15 +221,29 @@ Once the user confirms, generate the flow `index.mdx` file following the format 
        url: "https://stripe.com"
    ```
 
-6. Connect all steps with `next_step` or `next_steps` as appropriate.
+6. For **containers**, **nested flows**, **data products**, or **custom** nodes, use those pointer fields (never `type: container` / `type: flow` / `type: custom`):
+   ```yaml
+   - id: "orders_db"
+     title: "Orders DB"
+     container:
+       id: "orders-db"
+       version: "0.0.1"
+   - id: "manual_review"
+     title: "Manual Review"
+     custom:
+       title: "Manual Review"
+       summary: "Human review before continuing"
+   ```
 
-7. Terminal steps (end of flow or end of a branch) should have no `next_step`.
+7. Connect all steps with `next_step` or `next_steps` as appropriate. Do not use both on the same step. Optional `type` on a step, if set, must be `node`, `message`, `agent`, `user`, or `actor`.
 
-8. The body should be `<NodeGraph />`.
+8. Terminal steps (end of flow or end of a branch) should have no `next_step`.
 
-9. Set `version` to `0.0.1` for new flows.
+9. The body should be `<NodeGraph />`.
 
-10. Write a meaningful `summary` that describes the end-to-end business process.
+10. Set `version` to `0.0.1` for new flows.
+
+11. Write a meaningful `summary` that describes the end-to-end business process.
 
 ### Step 7: Validate and Write
 
@@ -248,7 +270,7 @@ After writing, let the user know:
 - **Be helpful with matches.** When you find catalog resources that match, proactively suggest them — but always let the user decide.
 - **Be honest about misses.** If nothing in the catalog matches, say so plainly and document it descriptively.
 - **Keep it conversational.** This is a guided walkthrough, not a form to fill out. Be natural and responsive.
-- **Suggest, don't dictate.** If the user's description doesn't perfectly map to a step type, suggest what you think fits and ask if that's right.
+- **Suggest, don't dictate.** If the user's description doesn't perfectly map to a pointer field, suggest what you think fits and ask if that's right.
 - **Handle complexity gracefully.** If a flow gets complex (many branches, loops), help the user keep track by summarizing periodically.
 
 ## Searching the Catalog
@@ -276,7 +298,7 @@ Before delivering the flow file:
 
 1. Every step has a unique `id`
 2. Every step has a `title`
-3. Every step has exactly one type (`actor`, `service`, `agent`, `message`, or `externalSystem`)
+3. Every step has at most one pointer field (`message`, `service`, `agent`, `actor`, `externalSystem`, `container`, `flow`, `dataProduct`, or `custom`), or none. If `type` is set, it is one of `node`, `message`, `agent`, `user`, `actor`
 4. All `next_step` and `next_steps` references point to valid step IDs within the flow
 5. No orphaned steps (every step is reachable from the first step, except via branching)
 6. Matched resources use correct `id` and `version` from the catalog

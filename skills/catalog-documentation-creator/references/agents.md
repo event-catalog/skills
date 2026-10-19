@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside an agent folder
 **Location:** `agents/{AgentName}/index.mdx`, `domains/{Domain}/agents/{AgentName}/index.mdx`, or `domains/{Domain}/subdomains/{Subdomain}/agents/{AgentName}/index.mdx`
 
+Current version: `{agent}/index.mdx`. Historical versions: `{agent}/versioned/{semver}/index.mdx`.
+
 Agents document AI agents, copilots, autonomous workers, and LLM-powered assistants that participate in the architecture.
 
 ## Frontmatter Fields
@@ -18,8 +20,8 @@ Agents document AI agents, copilots, autonomous workers, and LLM-powered assista
 | `owners` | Yes | Array of team or user IDs |
 | `model` | No | Object with `provider`, `name`, and optional `version` |
 | `tools` | No | Array of tools the agent can call |
-| `sends` | No | Array of events, commands, or queries this agent produces |
-| `receives` | No | Array of events, commands, or queries this agent consumes |
+| `sends` | No | Array of events, commands, or queries this agent produces. Each pointer may include optional `fields: string[]` for field-level lineage |
+| `receives` | No | Array of events, commands, or queries this agent consumes. Each pointer may include optional `fields: string[]` for field-level lineage |
 | `writesTo` | No | Array of containers/databases the agent writes to |
 | `readsFrom` | No | Array of containers/databases the agent reads from |
 | `flows` | No | Array of business flows this agent participates in |
@@ -59,11 +61,19 @@ receives:
   - id: OrderCancelled
     from:
       - id: orders-domain-eventbus
+    fields:
+      - orderId
+      - reason
 sends:
   - id: SupportCaseUpdated
     to:
       - id: support-events
+    fields:
+      - caseId
+      - suggestedReply
 ```
+
+Optional `fields: string[]` on `sends` / `receives` records field-level lineage (same pointer shape as services).
 
 ## Example: Agent with Tools, Messages, and Containers
 

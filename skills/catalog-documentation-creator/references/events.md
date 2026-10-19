@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside an event folder
 **Location:** `events/{EventName}/index.mdx` or nested under a service `domains/{Domain}/services/{Service}/events/{EventName}/index.mdx`
 
+Current version: `{event}/index.mdx`. Historical versions: `{event}/versioned/{semver}/index.mdx`.
+
 ## Frontmatter Fields
 
 | Field | Required | Description |
@@ -14,7 +16,8 @@
 | `version` | Yes | Semver string (e.g., `0.0.1`) |
 | `summary` | Yes | 1-2 sentence description of when this event is triggered |
 | `owners` | Yes | Array of team or user IDs |
-| `schemaPath` | No | Path to schema file (e.g., `schema.json`, `schema.avro`) |
+| `schemaPath` | No | Simple path to a schema or spec file next to `index.mdx` (e.g., `schema.json`, `schema.avro`, `schema.graphql`) |
+| `specifications` | No | Object with `openapiPath` / `asyncapiPath` / `graphqlPath`, **or** an array of `{ type, path, name? }` where `type` is `openapi`, `asyncapi`, or `graphql` |
 | `badges` | No | Array of badge objects |
 | `draft` | No | Object with `title` and `message` for draft events |
 
@@ -26,8 +29,17 @@ Schema files sit alongside the `index.mdx` file in the same folder. Supported fo
 - `schema.avro` — Avro schema
 - `schema.yml` — YAML schema
 - `schema.proto` — Protobuf
+- `schema.graphql` — GraphQL schema (also via `specifications` with `type: graphql` or `graphqlPath`)
 
 Reference schemas in the body with `<Schema />` or `<SchemaViewer />` components.
+
+```yaml
+schemaPath: schema.graphql
+specifications:
+  - type: graphql
+    path: schema.graphql
+    name: Inventory GraphQL
+```
 
 ## Example 1: Event with Schema and Code Samples
 

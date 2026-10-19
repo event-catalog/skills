@@ -5,6 +5,8 @@
 **File:** `index.mdx` inside a data product folder
 **Location:** `data-products/{DataProductName}/index.mdx` or nested under a domain/subdomain, e.g. `domains/{Domain}/data-products/{DataProductName}/index.mdx`
 
+Current version: `{data-product}/index.mdx`. Historical versions: `{data-product}/versioned/{semver}/index.mdx`.
+
 Data products document curated data outputs such as analytics marts, reporting datasets, feature stores, ML inputs, operational read models, or externally consumed data contracts.
 
 ## Frontmatter Fields
