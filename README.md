@@ -12,6 +12,7 @@ A collection of AI agent skills for [EventCatalog](https://eventcatalog.dev) tha
 | [catalog-documentation-creator](skills/catalog-documentation-creator/) | Generates EventCatalog documentation files (services, agents, events, commands, queries, domains, flows, channels, containers) with correct frontmatter, folder structure, and best practices. |
 | [code-to-catalog](skills/code-to-catalog/) | Scans a codebase, grills you interview-style on the architectural model (domains, services, agents, messages, boundaries), produces a plan file, then hands off to catalog-documentation-creator. Works for new catalogs and for reconciling existing catalogs with drifted code. |
 | [custom-pages-and-apis](skills/custom-pages-and-apis/) | Builds custom pages and API routes inside your EventCatalog (Scale plan) — Astro pages and TypeScript endpoints in your catalog's `pages/` folder, using the stable `@catalog/layouts` and `@catalog/utils` toolkit, wired into the navigation. |
+| [fitness-functions](skills/fitness-functions/) | Turns architecture rules into EventCatalog fitness functions — TypeScript checks for ownership, naming, domain boundaries, dependencies and data access — places them globally or beside the resource they govern, runs `eventcatalog fitness check`, verifies the results and wires them into CI. |
 | [flow-wizard](skills/flow-wizard/) | Interactive, conversational skill that guides you through documenting business and agent flows step-by-step, cross-referencing your existing catalog resources. |
 
 ## Installation
@@ -80,6 +81,9 @@ Once installed, the skills are automatically available to your AI agent. Here ar
 
 **Map an agent workflow:**
 > "Map the fraud review flow where the FraudReviewAgent checks risk signals before payment capture"
+
+**Enforce an architecture rule:**
+> "Write a fitness function that fails CI when a service in the Orders domain writes to another domain's database"
 
 **Scaffold a new catalog:**
 > "I don't have an EventCatalog yet, help me create one and document my architecture"
