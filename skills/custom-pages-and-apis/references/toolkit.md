@@ -1,6 +1,6 @@
 # Toolkit Reference
 
-The `@catalog/*` aliases are EventCatalog's **stable public API** for custom pages. Internal aliases (`@components/*`, `@utils/*`, `@layouts/*`, `@enterprise/*`) also resolve inside pages but are NOT a contract — never generate code that imports them.
+The `@catalog/*` aliases are EventCatalog's **stable public API** for custom pages. Internal aliases (`@components/*`, `@utils/*`, `@layouts/*`, `@features/*`) also resolve inside pages but are NOT a contract — never generate code that imports them.
 
 ## `@catalog/layouts/Layout.astro`
 
@@ -24,8 +24,11 @@ Props:
 | `description` | `string` | — | Meta description |
 | `sidebar` | `boolean` | `true` | Render the resource sidebar (the one listing domains, services, messages). Set `false` for full-width pages like dashboards and landing pages |
 | `showHeader` | `boolean` | `true` | Show the EventCatalog header (search, navigation) |
+| `fullWidth` | `boolean` | `false` | Render content edge-to-edge without EventCatalog's page padding (core 4.12+) |
 
-Guidance: dashboards, team pages, and marketing-style pages usually read better with `sidebar={false}`. Documentation-adjacent pages can keep it.
+Guidance: dashboards, team pages, and marketing-style pages usually read better with `sidebar={false}`. Documentation-adjacent pages can keep it. The Layout already adds page padding, so don't add your own outer `px-8 py-10` on top; use `fullWidth` when the page controls its own spacing.
+
+Don't wrap `pages/homepage.astro` in `Layout`: the homepage is already rendered inside the shell.
 
 ## `@catalog/utils`
 
@@ -39,7 +42,7 @@ Available getters:
 
 `getDomains`, `getServices`, `getSystems`, `getEvents`, `getCommands`, `getQueries`, `getFlows`, `getChannels`, `getEntities`, `getAgents`, `getContainers`, `getDataProducts`, `getAdrs`, `getTeams`, `getUsers`
 
-Options (all getters):
+Options (versioned getters):
 
 ```ts
 const services = await getServices();                          // all versions of every service
@@ -48,7 +51,7 @@ const latest = await getServices({ getAllVersions: false });  // latest version 
 
 - `getAllVersions` (default `true`) — set `false` for "latest of each" — this is what most custom pages want.
 - Results are cached in memory, so calling the same getter from many pages is cheap.
-- `getTeams` and `getUsers` are non-versioned collections; the versioning option has no effect there.
+- `getTeams()` and `getUsers()` take no options (teams and users aren't versioned).
 
 ### Entry shape
 
@@ -62,12 +65,22 @@ events[0].data.id;         // resource id, e.g. "OrderCreated"
 events[0].data.name;       // display name
 events[0].data.version;    // e.g. "1.0.0"
 events[0].data.summary;    // short summary text
-events[0].data.owners;     // owning teams/users (hydrated references)
+events[0].data.owners;     // owner references: [{ id, collection: 'teams' | 'users' }]
+events[0].data.latestVersion; // newest version of this resource
+events[0].data.versions;   // all versions
 ```
 
 Messages (events/commands/queries) hydrate their producer/consumer service relationships; services hydrate their message relationships. Frontmatter fields from the resource's markdown are available on `.data`.
 
-Link resources to their docs pages with `/docs/{collection}/{id}/{version}`:
+`owners` and a team's `members` are **references, not entries**: they only carry `id` and `collection`. To show names, look them up:
+
+```ts
+const [teams, users] = await Promise.all([getTeams(), getUsers()]);
+const owners = new Map([...teams, ...users].map((o) => [o.data.id, o]));
+const ownerNames = (event.data.owners ?? []).map((ref) => owners.get(ref.id)?.data.name ?? ref.id);
+```
+
+Link resources to their docs pages with `/docs/{collection}/{id}/{version}` (teams and users have no version: `/docs/teams/{id}`, `/docs/users/{id}`). Lists of resources are at `/discover/{type}`, e.g. `/discover/services`, `/discover/events`, `/discover/domains`.
 
 ```astro
 <a href={`/docs/events/${event.data.id}/${event.data.version}`}>{event.data.name}</a>
@@ -85,7 +98,7 @@ const [match] = getItemsFromCollectionByIdAndSemverOrLatest(events, 'OrderCreate
 
 ## `@catalog/components/*`
 
-Resolves to the user's own `components/` folder at the catalog root (the same folder used for custom MDX components). Reusable across markdown docs AND custom pages:
+Resolves to the user's own `components/` folder at the catalog root (the same folder used for custom MDX components), then to `federated/components/` for components that come from federated catalogs (local ones win). Reusable across markdown docs AND custom pages:
 
 ```astro
 ---

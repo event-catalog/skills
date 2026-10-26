@@ -6,14 +6,14 @@ EventCatalog supports documenting ubiquitous language terms per domain as a glos
 
 ## Format
 
-**File:** `ubiquitous-language.mdx` (NOT `index.mdx`)
-**Location:** Inside a domain folder: `domains/{DomainName}/ubiquitous-language.mdx`
+**File:** `ubiquitous-language.mdx` or `ubiquitous-language.md` (NOT `index.mdx`)
+**Location:** Inside a domain or subdomain folder: `domains/{DomainName}/ubiquitous-language.mdx` or `domains/{DomainName}/subdomains/{SubdomainName}/ubiquitous-language.mdx`
 
 This file uses YAML frontmatter only — the body is typically empty.
 
 ## Frontmatter Fields
 
-The frontmatter contains a single `dictionary` array:
+The frontmatter contains a `dictionary` array (and an optional top-level `editUrl`):
 
 ```yaml
 ---
@@ -34,9 +34,10 @@ dictionary:
 |-------|----------|-------------|
 | `id` | Yes | Unique identifier for the term |
 | `name` | Yes | Display name |
-| `summary` | Yes | Brief one-line description (under 125 characters) |
+| `summary` | Recommended | Brief one-line description (under 125 characters) |
 | `description` | No | Detailed multi-line explanation in markdown |
 | `icon` | No | Lucide icon name (from lucide.dev) — e.g., `FileText`, `Package`, `Tag`, `Receipt` |
+| `editUrl` | No | Link to edit the term at its source |
 
 ## When to Generate Ubiquitous Language
 
@@ -227,8 +228,8 @@ dictionary:
 
 ## Key Conventions
 
-- One `ubiquitous-language.mdx` file per domain
-- Terms automatically appear in the domain sidebar in EventCatalog
+- One `ubiquitous-language.mdx` file per domain or subdomain
+- The domain sidebar gets a "Ubiquitous Language" link to the domain's glossary page (`/docs/domains/{id}/language`)
 - Keep summaries under 125 characters
 - Use Lucide icons (browse at lucide.dev) to make terms visually distinct
 - Focus on terms that have specific meaning within the domain context — not generic programming terms

@@ -123,7 +123,7 @@ Props:
 - `title="My Title"` — custom title
 - Can render a specific resource: `<NodeGraph id="Orders" version="0.0.3" type="domain" />`
 
-**Use in:** Every resource type. This is the primary visualization component.
+**Use in:** Agents, services, events, commands, queries, domains, systems, flows, channels, containers and data products. This is the primary visualization component. It renders nothing on entities, diagrams, teams, users or ADRs (use `<EntityMap />` for entities).
 
 ### `<ContextDiagram />`
 
@@ -186,14 +186,21 @@ Renders channel metadata (protocols, delivery guarantee, parameters, routing).
 Embeds a flow visualization from another flow resource into any page.
 
 ```markdown
-<Flow id="CancelSubscription" version="latest" includeKey={false} mode="full" />
+<Flow id="CancelSubscription" version="latest" lanes="team" walkthrough="true" />
 ```
+
+Props:
+- `id`, `version` (default `latest`), `mode="simple|full"`, `maxHeight`
+- `lanes="domain|system|team|domain-system"` — start the flow grouped. Groups come from each step's domain, system and owners, so the flow needs no extra frontmatter
+- `walkthrough="true"` — show the step-by-step walkthrough
+- `search="true"` — show the search bar (default off)
+- `legend={false}` (alias `includeKey`) — hide the legend
 
 **Use in:** Domain or service pages to show related business flows.
 
 ### `<Tiles />` and `<Tile />`
 
-Render clickable tile cards for navigation.
+Render clickable tile cards for navigation. `<Tiles>` takes optional `title` and `columns` (default 2). `<Tile>` takes `href`, `icon`, `title`, `description` and optional `openWindow`. `icon` must be a [Heroicons](https://heroicons.com) 24/solid component name (e.g. `DocumentIcon`).
 
 ```markdown
 <Tiles>
@@ -273,15 +280,83 @@ Creates a styled link to a resource (alternative to wiki-style references).
 
 **Use in:** When you need more control over the link text than `[[type|name]]` provides.
 
-### `<OpenAPI />`
+### `<ADRTable />`
 
-Renders an OpenAPI/Swagger specification.
+Lists the ADRs that apply to the current resource (via the ADR's `appliesTo`).
 
 ```markdown
-<OpenAPI file="openapi.yml" />
+<ADRTable status="accepted,proposed" limit={10} />
 ```
 
-**Use in:** Services with REST APIs.
+Props: `status` (one status or a comma-separated list; all when omitted), `limit` (page size, default 10).
+
+**Use in:** Domains, systems and services that have architecture decisions.
+
+### `<EntityMap />` and `<EntityPropertiesTable />`
+
+`<EntityMap />` draws the entities of a domain or service and their relationships (the "Entity Diagram"). `<EntityPropertiesTable />` renders an entity's `properties` as a table.
+
+```markdown
+<EntityMap id="Orders" entities={['Order', 'OrderItem']} maxHeight="600" />
+<EntityPropertiesTable />
+```
+
+**Use in:** `<EntityMap />` on domain and service pages (`id`, `version`, `entities` and `includeKey` are optional). `<EntityPropertiesTable />` on entity pages.
+
+### `<CustomProperties />` and `<CustomProperty />`
+
+Render the resource's custom `x-` frontmatter properties. Unknown frontmatter keys fail the build unless they start with `x-`, so put custom metadata in `x-*` keys and show it with these.
+
+```markdown
+<CustomProperties title="Operational details" />
+<CustomProperty name="x-cost-centre" label="Cost centre" />
+```
+
+**Use in:** Any resource with `x-*` properties.
+
+### `<Attachments />`
+
+Renders the resource's frontmatter `attachments` (URLs, or `{ url, title, type, description, icon }`) as cards. Props: `title`, `description`, `columns` (default 2).
+
+### `<ResourceGroupTable />`
+
+Renders a table of the resources in a `resourceGroups` group. Props: `id` (the group id), `limit`, `title`, `subtitle`, `description`, `showOwners`, `showTags`.
+
+### `<ArchitectureGraph />`
+
+Embeds the catalog's architecture graph (the homepage graph). Optional `id` and `collection` focus it on a resource.
+
+### Layout helpers
+
+- `<Admonition type="info|note|tip|warning|alert|danger" title="...">` — callout box.
+- `<CodeGroup>` — wrap several fenced code blocks into one tabbed block (`dropdown` for a select menu).
+- `<Columns cols={2}>` with `<Column>` children — side-by-side content (`ratio`, `sticky` on a column).
+- `<Prompt description="..." />` — a copyable AI prompt card.
+
+### Embeds
+
+| Component | Required prop | Notes |
+|---|---|---|
+| `<Miro />` | `boardId` | `height`, `title`, `edit`, `moveToWidget`, `moveToViewport` |
+| `<Lucid />` | `diagramId` | `height`, `title` |
+| `<DrawIO />` | `url` | `height`, `title` |
+| `<FigJam />` | `url` | `height`, `title` |
+| `<IcePanel />` | `url` | `height`, `width`, `title`, `description` |
+| `<LikeC4View />` | `viewId` | `project`, `height` — renders a view from LikeC4 `.c4` sources in the catalog |
+
+### API specifications
+
+Don't use `<OpenAPI />` or `<AsyncAPI />` — they're deprecated and only render a notice. Attach specifications in frontmatter instead; EventCatalog renders them on their own pages:
+
+```yaml
+specifications:
+  - type: openapi        # openapi | asyncapi | graphql | generic
+    path: openapi.yml
+    name: Orders API
+  - type: generic        # any other contract, e.g. WSDL or XSD
+    path: orders.wsdl
+    name: Orders SOAP
+```
 
 ---
 
@@ -302,3 +377,8 @@ Renders an OpenAPI/Swagger specification.
 | Step-by-step integration guide | `<Steps />` |
 | Embed a business flow | `<Flow />` |
 | Quick navigation cards | `<Tiles />` |
+| List decisions for a resource | `<ADRTable />` |
+| Show entities and relationships | `<EntityMap />` |
+| Show custom `x-` properties | `<CustomProperties />` |
+| Show an API spec | `specifications` frontmatter |
+| Embed Miro, Lucid, draw.io, FigJam, IcePanel or LikeC4 | The matching embed component |

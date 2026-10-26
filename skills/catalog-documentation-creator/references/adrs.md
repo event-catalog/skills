@@ -27,6 +27,8 @@ ADRs are first-class, versioned EventCatalog resources for documenting significa
 | `related` | No | Related ADRs |
 | `badges` | No | Array of badge objects |
 
+Relationship fields (`supersedes`, `supersededBy`, `amends`, `amendedBy`, `related`) take `{ id, version? }`; `version` defaults to `latest`. Unknown frontmatter keys fail the build; put custom metadata in keys starting with `x-`.
+
 ## Applies To Types
 
 The `appliesTo` field supports these resource types:
@@ -95,8 +97,8 @@ Teams can add or change downstream processing without changing the order service
 
 ```mdx
 ---
-id: adr-004-reserve-inventory-before-payment
-name: "ADR-004: Authorize payment before reserving inventory"
+id: adr-002-authorize-payment-before-inventory
+name: "ADR-002: Authorize payment before reserving inventory"
 version: 1.0.0
 summary: The first checkout design authorized payment before inventory reservation.
 status: superseded
@@ -114,7 +116,6 @@ appliesTo:
     id: InventoryService
 supersededBy:
   - id: adr-004-reserve-inventory-before-payment
-    version: 2.0.0
 ---
 
 ## Context
@@ -138,5 +139,6 @@ The approach produced poor customer outcomes when stock was exhausted after paym
 - Use `deprecated` when a decision is no longer recommended but not directly replaced.
 - Prefer `Context`, `Decision`, and `Consequences` headings in the body.
 - Link affected resources with `appliesTo` so ADRs appear on related resource pages.
+- Add `<ADRTable />` to a domain, system or service page to list the ADRs that apply to it (`status="accepted,proposed"` filters, `limit` sets the page size).
 - ADRs that mainly describe a system boundary, persistence model, integration pattern, or ownership model can live under that system's `adrs/` folder and should include `type: system` in `appliesTo`.
-- Keep ADR IDs stable across versions.
+- Keep ADR IDs stable across versions. A replacement decision is usually a new ADR with its own `id`. If you revise the same ADR instead, move the old version to `adrs/{adr-id}/versioned/{version}/index.mdx`.

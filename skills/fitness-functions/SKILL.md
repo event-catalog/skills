@@ -17,8 +17,8 @@ The team decides what a healthy architecture looks like; EventCatalog runs the r
 
 ## Requirements (check these FIRST)
 
-1. **Version** — `@eventcatalog/core` **5.4.0 or later** (check the catalog's `package.json`). Alternatively `@eventcatalog/cli` **1.4.0 or later** runs the same check without core (`npx @eventcatalog/cli fitness check`). Node.js 20 or later.
-2. **Editor types (optional)** — fitness functions run without installing anything else, but for types and autocomplete install `@eventcatalog/fitness` as a dev dependency. Catalogs created with `create-eventcatalog` already have it, plus two starter functions in `fitness/` and an `npm run fitness` script.
+1. **Version** — `@eventcatalog/core` **5.3.0 or later** (check the catalog's `package.json`). Alternatively `@eventcatalog/cli` **1.4.0 or later** runs the same check without core (`npx @eventcatalog/cli fitness check`). Node.js 20 or later.
+2. **Editor types (optional)** — fitness functions run without installing anything else, but for types and autocomplete install `@eventcatalog/fitness` as a dev dependency. Catalogs created with `create-eventcatalog` 4.5.0 or later already have it, plus two starter functions in `fitness/` and an `npm run fitness` script.
 
 ## Fitness function, linter or governance?
 
@@ -27,7 +27,7 @@ Pick the right tool before writing code:
 | The rule is about… | Use |
 |---|---|
 | A single file being valid: frontmatter fields, required properties, broken references, file layout | `@eventcatalog/linter` |
-| What **changed** in a pull request (a new consumer, a schema change, a deprecation), with notifications | `eventcatalog governance check` (`governance.yaml`) |
+| What **changed** in a pull request (a new consumer, a schema change, a deprecation), with notifications | `npx @eventcatalog/cli governance check` (`governance.yaml`) |
 | The **shape of the architecture**: ownership, naming, boundaries, dependencies, who can access what, across many resources | **A fitness function** (this skill) |
 
 ## Instructions
@@ -70,7 +70,7 @@ Where the file lives decides the `resource` it receives — not what it can see:
 Channels, flows, entities, data products, ADRs and diagrams work the same way. Rules:
 
 - Only files ending in **`.fitness.ts`** run. Other `.ts` files (shared helpers) are never run, so fitness functions can import them.
-- The `fitness/` folder must sit **directly inside** the resource's folder (beside its `index.mdx`). A `.fitness.ts` file anywhere else is not run and is reported as a diagnostic.
+- The `fitness/` folder must sit **directly inside** the resource's folder (beside its `index.mdx`). A `.fitness.ts` file outside any `fitness/` folder is not run and is reported as a diagnostic. A `fitness/` folder that isn't directly inside a resource folder (or whose `index.mdx` has no `id`) makes the function an **error**, which fails the check.
 - Fitness functions in federated catalogs (`federated/…`) are not run, and federation does not copy `fitness/` folders.
 
 ### Step 4: Write the fitness function
@@ -139,6 +139,12 @@ EventCatalog Fitness
 ! Every event has a producer                        3 warnings
 
 3 fitness functions evaluated
+
+1 passed
+1 warning
+1 failed
+
+Report written to .eventcatalog/fitness/results.json
 ```
 
 Verify before handing over — a rule that can never fail is worse than none:
@@ -162,6 +168,8 @@ Run `npx eventcatalog fitness check` in the pipeline that checks catalog changes
 | `! <file>: Not run: fitness functions must be in a fitness/ folder` | Move the file into a `fitness/` folder at the root or directly inside a resource's folder |
 | `No resource found for this fitness function: '<folder>' has no index.mdx or index.md` | The `fitness/` folder isn't directly inside a resource's folder |
 | `… is not in a resource folder (such as domains/ or services/)` | The folder holding `fitness/` isn't a recognised resource folder |
+| `No resource found for this fitness function: '<index>' has no id` | The resource's `index.mdx` has no `id` in its frontmatter |
+| `Could not load the <type> '<id>' (<version>) this fitness function sits alongside` | The resource beside the `fitness/` folder couldn't be read from the catalog — check its frontmatter is valid |
 | `The file has no default export` | Add `export default defineFitnessFunction({ ... })` |
 | `Invalid fitness function: \`id\` must be a non-empty string, …` | Missing `id`/`name`/`run`, or `severity` isn't `'error'` or `'warning'` |
 | `Another fitness function already has the id '<id>'` | Ids must be unique; the first file (by path) runs, later ones error |
@@ -169,7 +177,7 @@ Run `npx eventcatalog fitness check` in the pipeline that checks catalog changes
 | `Cannot find module './helpers/…'` | Wrong relative path to a helper — count the folders up to the catalog root |
 | `(…, not found in the catalog)` after a resource | The reference's `type` or `id` doesn't match a resource; it's kept but not linked |
 | `Cannot find module '@eventcatalog/fitness'` in the editor only | Install `@eventcatalog/fitness` as a dev dependency; the check itself works without it |
-| `fitness` is not a command | `@eventcatalog/core` is older than 5.4.0 — upgrade, or use `npx @eventcatalog/cli fitness check` |
+| `fitness` is not a command | `@eventcatalog/core` is older than 5.3.0 — upgrade, or use `npx @eventcatalog/cli fitness check` |
 
 ## Trust
 

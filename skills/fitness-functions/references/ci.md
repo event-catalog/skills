@@ -32,7 +32,7 @@ jobs:
       - run: npx eventcatalog fitness check
 ```
 
-If the catalog isn't at the repository root, set `working-directory` on the step (for `eventcatalog`), or pass the directory to the CLI package:
+If the catalog isn't at the repository root, set `working-directory` on the step (or `PROJECT_DIR`) for `eventcatalog`, or pass the directory to the CLI package:
 
 ```yaml
       - run: npx @eventcatalog/cli --dir ./catalog fitness check

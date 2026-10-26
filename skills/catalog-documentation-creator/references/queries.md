@@ -15,8 +15,11 @@
 | `summary` | Yes | 1-2 sentence description of what this query returns |
 | `owners` | Yes | Array of team or user IDs |
 | `schemaPath` | No | Path to schema file (e.g., `schema.json`) |
+| `schemas` | No | Array of schemas for multiple or named schemas: `path` (or `file`), `name`, `format`, `environments`, `default: true` for the one shown first. Use instead of `schemaPath` when there is more than one schema |
 | `badges` | No | Array of badge objects |
-| `operation` | No | Object with `method`, `path`, and `statusCodes` for REST operations |
+| `operation` | No | Object with `method` (`GET`, `POST`, `PUT`, `DELETE`, or `PATCH`), `path`, and `statusCodes` for REST operations |
+| `draft` | No | `true`, or `{ title?, message }` |
+| `deprecated` | No | `true`, or `{ message, date }` to explain the deprecation |
 
 ## Example: Query with REST Operation and Schema
 
@@ -64,3 +67,4 @@ curl -X GET "https://api.yourdomain.com/inventory/{productId}/status" \
 - Use `operation` field for REST-style queries to document the GET endpoint
 - Include `<SchemaViewer />` for the response schema
 - Include CURL or code examples showing how to call the query
+- Example payloads can go in an `examples/` folder inside the message folder; they appear in a **Usage Examples** tab with no frontmatter changes

@@ -1,6 +1,6 @@
 ---
 name: flow-wizard
-description: Guides users through documenting business flows step-by-step in EventCatalog, including services, agents, messages, actors, and external systems. Use when user asks to "document a flow", "map a business process", "create a flow diagram", "walk through a process", "document an end-to-end flow", "map an agent workflow", or "map out how something works in my architecture".
+description: Guides users through documenting business flows step-by-step in EventCatalog, including services, agents, messages, channels, systems, data stores, actors, and external systems. Use when user asks to "document a flow", "map a business process", "create a flow diagram", "walk through a process", "document an end-to-end flow", "map an agent workflow", or "map out how something works in my architecture".
 license: MIT
 metadata:
   author: eventcatalog
@@ -19,12 +19,12 @@ Before anything else, you need to find the user's EventCatalog project so you ca
 
 Ask: **"Do you have an EventCatalog project I can look at? If so, where is it?"**
 
-- If they provide a path, verify it's an EventCatalog project by checking for `eventcatalog.config.js` or known directories (`services/`, `agents/`, `events/`, `domains/`, `flows/`).
+- If they provide a path, verify it's an EventCatalog project by checking for `eventcatalog.config.js` or known directories (`services/`, `agents/`, `events/`, `domains/`, `systems/`, `flows/`).
 - If they have the EventCatalog MCP server connected, use `getResources` to discover what's in the catalog.
 - If they don't have one, that's fine — you'll document steps as plain text descriptions without resource references. Let them know they can still create a useful flow and add resource links later.
 
 Once located, scan the catalog to build an inventory of existing resources:
-- Read existing services, agents, events, commands, queries, domains, channels, and flows
+- Read existing services, agents, events, commands, queries, domains, systems, channels, containers (data stores), data products, and flows
 - Note their IDs, names, and versions — you'll use these to suggest matches as the user walks through their flow
 
 ### Step 2: Ask What Flow They Want to Document
@@ -61,15 +61,22 @@ As the user describes what happens, you need to:
 
 #### A. Identify the Step Type
 
-From their description, determine which flow step type(s) this section involves:
+From their description, determine which kind of step(s) this section involves. Each step is **one** of these (see `references/flows.md` for the exact shapes):
 
 - **Actor** — a person or role does something (e.g., "the user clicks sign up", "the admin approves")
 - **Service** — a service in their architecture processes something (e.g., "our auth service handles registration")
 - **Agent** — an AI agent reasons, invokes tools, or automates part of the process (e.g., "the refund agent reviews the case")
 - **Message** — an event, command, or query is exchanged (e.g., "a UserRegistered event is fired")
-- **External System** — a third-party system is involved (e.g., "we call Stripe for payment", "Twilio sends the SMS")
+- **Channel** — where a message travels, when it matters (e.g., "it goes onto the orders Kafka topic")
+- **System** — a whole system takes part, internal or external (e.g., "the billing platform handles it")
+- **Container** — a data store is read or written (e.g., "we save it to the orders database")
+- **Data product** — an analytical data product is produced or consumed
+- **Sub-flow** — the process hands off to another documented flow (e.g., "then the refund flow starts")
+- **External System** — a third-party system that isn't in the catalog (e.g., "we call Stripe for payment", "Twilio sends the SMS")
+- **Custom** — anything else worth drawing (a manual review, a UI, a scheduled job)
+- **Plain step** — a titled box that points at nothing (e.g., "the cancellation is rejected")
 
-A single section may produce multiple steps (e.g., a user action triggers a command, which is handled by a service, which emits an event).
+A single section may produce multiple steps (e.g., a user action triggers a command, which is handled by a service, which emits an event). A step can never be two things at once — "the service emits an event" is two steps.
 
 #### B. Cross-Reference the Catalog
 
@@ -79,7 +86,9 @@ For each step the user describes, search their EventCatalog (if available) for m
 2. **Agents** — Does the AI agent, assistant, copilot, or autonomous worker they mention exist in the catalog?
 3. **Events/Commands/Queries** — Does the message they describe match something already documented? Look for exact matches and close matches (e.g., user says "order created event" → search for `OrderCreated`, `OrderPlaced`, etc.).
 4. **Channels** — Are there channels relevant to how this message flows?
-5. **Domains** — Does this step fall within a documented domain?
+5. **Systems** — Is this a documented system (including external systems with `scope: external`, e.g. Stripe)? Prefer a `system` step over `externalSystem` when it is.
+6. **Containers / data products** — Is the data store or data product they mention documented?
+7. **Domains** — Does this step fall within a documented domain?
 
 **If you find a match**, tell the user:
 
@@ -95,14 +104,13 @@ If they say yes, use the resource's actual `id` and `version` in the flow step.
 >
 > Which one fits, or is this something new?
 
-**If you find no match**, that's perfectly fine. Document it as a descriptive step:
-- If it sounds like a service, use `service` type with a suggested ID and note it's not yet in the catalog
-- If it sounds like an AI agent, use `agent` type with a suggested ID and note it's not yet in the catalog
-- If it sounds like a message, use `message` type with a suggested ID
-- If it's a person/role, use `actor` type
-- If it's a third-party tool/API, use `externalSystem` type
+**If you find no match**, that's perfectly fine — but don't point at a resource that doesn't exist. A `service`, `agent`, `message`, `channel`, `system`, `container`, `dataProduct` or `flow` pointer to something missing fails the linter (`refs/resource-exists`, an error by default). Ask the user which they prefer:
+- **Create the resource first** — document it with the `catalog-documentation-creator` skill, then point the step at it. Best for services, agents and messages that really exist.
+- **Describe it without a pointer** — a plain titled step (`id` + `title` + `summary`), or a `custom` step with an icon. Good for things they don't want to document yet.
+- If it's a person/role, use `actor`
+- If it's a third-party tool/API that isn't in the catalog, use `externalSystem`
 
-Let the user know: **"I didn't find this in your catalog. I'll document it as [step type] for now. You can create the full resource later if you'd like."**
+Let the user know: **"I didn't find this in your catalog. I'll [create it / describe it as a plain step] for now. You can document the full resource later and point the step at it."**
 
 #### C. Confirm Each Section Before Moving On
 
@@ -115,7 +123,7 @@ After processing a section, summarize what you've captured for that section and 
 > 2. `PaymentService` handles the payment (matched to your existing `PaymentService` v1.2.0)
 > 3. `FraudReviewAgent` reviews fraud signals (matched to your existing `FraudReviewAgent` v0.0.1)
 > 4. Calls **Stripe** (external system) to charge the card
-> 5. `PaymentProcessed` event is emitted (not in your catalog yet — I'll use a placeholder)
+> 5. `PaymentProcessed` event is emitted (not in your catalog yet — want me to create it first, or describe it as a plain step for now?)
 >
 > Does that look right? Anything to add or change?
 
@@ -166,12 +174,11 @@ Once the user confirms, generate the flow `index.mdx` file following the format 
 
 **Rules for generation:**
 
-1. Use the user's catalog directory. Ask where the flow should be saved if unclear — either `flows/{FlowName}/index.mdx` or `domains/{Domain}/flows/{FlowName}/index.mdx` depending on their catalog structure.
+1. Use the user's catalog directory. Ask where the flow should be saved if unclear — `flows/{FlowName}/index.mdx`, `domains/{Domain}/flows/{FlowName}/index.mdx`, or under a system (`systems/{System}/flows/{FlowName}/index.mdx`) depending on their catalog structure. If the flow belongs to a domain or system, also add it to that domain's or system's `flows` frontmatter — the folder alone doesn't link them.
 
-2. For **matched resources** (found in catalog), use the exact `id` and `version` from the catalog:
+2. For **matched resources** (found in catalog), use the exact `id` and `version` from the catalog. `title` is optional — it defaults to the resource's name, so only set it when a different label reads better:
    ```yaml
    - id: "payment_processing"
-     title: "Payment Service"
      service:
        id: "PaymentService"
        version: "1.2.0"
@@ -180,19 +187,18 @@ Once the user confirms, generate the flow `index.mdx` file following the format 
    Agent steps use the `agent` field:
    ```yaml
    - id: "fraud_review"
-     title: "Fraud Review Agent"
      agent:
        id: "FraudReviewAgent"
        version: "0.0.1"
    ```
 
-3. For **unmatched resources** (not in catalog), use descriptive IDs and version `0.0.1`:
+   Channel, system, container, data product and sub-flow steps use the same `{ id, version }` shape under `channel`, `system`, `container`, `dataProduct` or `flow`.
+
+3. For **unmatched resources** the user chose not to create yet, write a plain step (no pointer) or a `custom` step:
    ```yaml
    - id: "send_welcome_email"
      title: "Send Welcome Email"
-     message:
-       id: "WelcomeEmailRequested"
-       version: "0.0.1"
+     summary: "WelcomeEmailRequested is sent (not documented yet)"
    ```
 
 4. For **actors**, use the role or persona name:
@@ -219,6 +225,8 @@ Once the user confirms, generate the flow `index.mdx` file following the format 
 
 8. The body should be `<NodeGraph />`.
 
+   Never add a `type` field to steps (it's ignored), and put any custom step metadata in `x-` keys — unknown keys fail the build.
+
 9. Set `version` to `0.0.1` for new flows.
 
 10. Write a meaningful `summary` that describes the end-to-end business process.
@@ -228,18 +236,19 @@ Once the user confirms, generate the flow `index.mdx` file following the format 
 Before writing the file:
 
 1. Verify all step IDs are unique within the flow
-2. Verify all `next_step` / `next_steps` references point to valid step IDs
-3. Verify matched resource IDs and versions are correct
-4. Verify the YAML frontmatter is valid
-5. Verify `<NodeGraph />` is in the body
+2. Verify all `next_step` / `next_steps` references point to valid step IDs, and no step has both
+3. Verify every pointer matches a resource id (and version, if set) in the catalog
+4. Verify no step points at two things, and there are no unknown keys (custom ones must start with `x-`)
+5. Verify the YAML frontmatter is valid
+6. Verify `<NodeGraph />` is in the body
 
-Write the file to the user's catalog directory.
+Write the file to the user's catalog directory. If the catalog has a `lint` script (catalogs from `create-eventcatalog` run `eventcatalog-linter`), run `npm run lint` and fix anything it reports.
 
 After writing, let the user know:
 - Where the file was saved
 - Which resources were matched from their catalog
 - Which resources are new/unmatched — suggest they can document these later using the `catalog-documentation-creator` skill, especially new agents
-- They can view the flow visualization in EventCatalog by running their dev server
+- They can view the flow visualization in EventCatalog by running their dev server, and group it by domain, system or team from the flow page (or open it grouped with `<Flow id="..." lanes="team" />`)
 
 ## Conversation Guidelines
 
@@ -267,7 +276,7 @@ If the EventCatalog MCP server is available:
 - Use `findResourcesByOwner` to explore resources by team
 
 If reading the filesystem directly:
-- Look in `services/`, `agents/`, `events/`, `commands/`, `queries/`, `domains/`, `flows/`, `channels/` directories
+- Look in `services/`, `agents/`, `events/`, `commands/`, `queries/`, `domains/`, `systems/`, `flows/`, `channels/`, `containers/`, `data-products/` directories (they can also be nested under domains and systems)
 - Read `index.mdx` files to check `id`, `name`, `version`, and `summary` fields
 
 ## Quality Checklist
@@ -275,11 +284,11 @@ If reading the filesystem directly:
 Before delivering the flow file:
 
 1. Every step has a unique `id`
-2. Every step has a `title`
-3. Every step has exactly one type (`actor`, `service`, `agent`, `message`, or `externalSystem`)
+2. Every step has a clear label — a `title`, or a pointer whose resource name reads well (title defaults to it)
+3. Every step is at most one thing (`actor`, `service`, `agent`, `message`, `channel`, `system`, `container`, `dataProduct`, `flow`, `custom`, or `externalSystem`), and no step has a `type` field
 4. All `next_step` and `next_steps` references point to valid step IDs within the flow
 5. No orphaned steps (every step is reachable from the first step, except via branching)
-6. Matched resources use correct `id` and `version` from the catalog
+6. Every pointer matches a resource in the catalog (no placeholders — they fail `refs/resource-exists`)
 7. The flow has a clear start (first step) and at least one terminal step (no `next_step`)
 8. YAML frontmatter is valid with `---` delimiters
 9. File is named `index.mdx`
