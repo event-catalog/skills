@@ -119,8 +119,11 @@ Every resource file MUST include:
 - `name` as human-readable display name
 - `version` as semantic version string
 - `summary` as a concise 1-2 sentence description
+- `owners` with at least one team or user (the EventCatalog linter fails resources without a `summary` or an owner by default)
 
-CRITICAL: Always use `index.mdx` as the filename for versioned resources (systems, services, agents, events, commands, queries, domains, flows, channels, containers, ADRs, data products, entities, diagrams). Teams and users use `{id}.mdx` files directly. Changelogs use `changelog.mdx` or `changelog.md`. Ubiquitous language uses `ubiquitous-language.mdx`. Place files in the correct folder path following the nested structure pattern:
+CRITICAL: Only use frontmatter fields documented in the reference files. Any unknown top-level key fails the build (`Unknown property "tags". Custom properties must start with "x-"`). Put custom metadata in keys prefixed with `x-` (e.g. `x-tier: gold`) and render them in the body with `<CustomProperties />` or `<CustomProperty name="x-tier" />`.
+
+CRITICAL: Always use `index.mdx` as the filename for versioned resources (systems, services, agents, events, commands, queries, domains, flows, channels, containers, ADRs, data products, entities, diagrams). Teams and users use `{id}.mdx` files directly. Changelogs use `changelog.mdx` or `changelog.md`. Ubiquitous language uses `ubiquitous-language.mdx`. Older versions of a resource are archived in a `versioned/{version}/index.mdx` folder inside the resource (e.g. `events/OrderCreated/versioned/0.0.1/index.mdx`), with the latest version at the resource root. Place files in the correct folder path following the nested structure pattern:
 
 ```
 domains/{DomainName}/systems/{SystemName}/index.mdx
@@ -153,6 +156,7 @@ Do not generate `schemas` collection entries directly. Generate or reference sch
 Before presenting the files to the user, verify:
 
 - YAML frontmatter has `---` delimiters on both sides
+- Every frontmatter key is documented for that resource type, or prefixed with `x-`
 - All `id` fields are consistent (no spaces, match folder name)
 - All `version` fields are valid semver strings (e.g., `0.0.1`)
 - All message references in `sends`/`receives` include `id` and optionally `version`
@@ -285,8 +289,9 @@ When a user describes a multi-step process:
 
 1. Identify distinct steps (user actions, service calls, message exchanges, external systems)
 2. Generate the flow `index.mdx` with `steps` array
-3. Each step should have `id`, `title`, and appropriate type (`actor`, `service`, `agent`, `message`, `externalSystem`)
-4. Connect steps with `next_step` or `next_steps` for branching
+3. Each step has an `id`, an optional `title` (defaults to the name of what it points at), and at most one resource key: `message`, `service`, `agent`, `system`, `channel`, `flow`, `container`, `dataProduct`, `actor`, `custom`, or `externalSystem`. Don't set `type` (it is ignored). See `references/flows.md` for each step shape
+4. Connect steps with `next_step` or `next_steps` for branching (never both on one step)
+5. Only documented step keys are allowed; custom step keys must start with `x-`
 
 ### Documenting Channel Routing
 
@@ -306,22 +311,23 @@ Before delivering documentation to the user, verify every file against this chec
 
 1. Frontmatter has valid YAML between `---` delimiters
 2. `id` matches the folder name
-3. `version` is a valid semver string
-4. `summary` is concise and meaningful (not generic)
-5. Message relationships (`sends`/`receives`) include `id`
-6. Channel routing (`to`/`from`) references valid channel IDs
-7. Body includes `<NodeGraph />` for visualization when the resource has graph relationships
-8. Schema references point to real files
-9. Folder structure follows catalog conventions
-10. No duplicate resources (checked against existing catalog)
-11. Versioned resources use `index.mdx` (or match the catalog's existing `.md`/`.mdx` convention); teams and users use `{id}.mdx`; changelogs use `changelog.mdx`/`changelog.md`
-12. Every domain has at least one system, service, or agent — never create an empty domain
-13. Domain `systems`, `services`, and `agents` frontmatter lists every direct system, service, and agent that belongs to that domain
-14. Domain `entities`, `data-products`, `flows`, and `diagrams` frontmatter lists nested resources when present
-15. Every domain has a `ubiquitous-language.mdx` file with relevant domain terms extracted from services, agents, events, commands, entities, data products, and business processes
-16. ADRs have a valid status, date, decision makers when known, and `appliesTo` references for impacted resources
-17. System `scope`, relationship pointers, and actor directions are valid when systems are generated
-18. Data product contract files referenced in `outputs.contract.path` exist when generated
+3. No unknown frontmatter keys — only documented fields, or custom fields prefixed with `x-`
+4. `version` is a valid semver string
+5. `summary` is concise and meaningful (not generic)
+6. Message relationships (`sends`/`receives`) include `id`
+7. Channel routing (`to`/`from`) references valid channel IDs
+8. Body includes `<NodeGraph />` for visualization when the resource has graph relationships
+9. Schema references point to real files
+10. Folder structure follows catalog conventions
+11. No duplicate resources (checked against existing catalog)
+12. Versioned resources use `index.mdx` (or match the catalog's existing `.md`/`.mdx` convention); teams and users use `{id}.mdx`; changelogs use `changelog.mdx`/`changelog.md`
+13. Every domain has at least one system, service, or agent — never create an empty domain
+14. Domain `systems`, `services`, and `agents` frontmatter lists every direct system, service, and agent that belongs to that domain
+15. Domain `entities`, `data-products`, `flows`, and `diagrams` frontmatter lists nested resources when present
+16. Every domain has a `ubiquitous-language.mdx` file with relevant domain terms extracted from services, agents, events, commands, entities, data products, and business processes
+17. ADRs have a valid status, date, decision makers when known, and `appliesTo` references for impacted resources
+18. System `scope`, relationship pointers, and actor directions are valid when systems are generated
+19. Data product contract files referenced in `outputs.contract.path` exist when generated
 
 ## Troubleshooting
 
@@ -337,15 +343,19 @@ If `<Schema />` or `<SchemaViewer />` components show errors:
 
 ### Folder Structure Not Recognized
 If resources don't appear in EventCatalog:
-- Verify the file is named exactly `index.mdx` (not `INDEX.mdx` or `readme.md`)
+- Verify the file is named exactly `index.mdx` or `index.md` (not `INDEX.mdx` or `readme.md`)
+- Older versions must be in `{resource}/versioned/{version}/index.mdx`
 - Verify the folder is inside a recognized collection directory (`systems/`, `services/`, `agents/`, `events/`, `domains/`, etc.)
 
 ### System Context Diagram Not Showing Actors or Relationships
 If `<ContextDiagram />` does not show expected system context:
 - Verify the system frontmatter has `relationships` or `actors`
-- Verify `relationships` point to valid system IDs and include useful `label` values
+- Verify `relationships` point to valid system IDs and each has a `label` (relationships without a label draw no edge)
 - Verify actor `direction` is `inbound` or `outbound`
 - If viewing a domain context diagram, verify the domain `systems` frontmatter references the relevant systems
+
+### Build Fails With `Unknown property`
+- The frontmatter has a key the resource schema doesn't define. Remove it, fix its spelling, or rename it with an `x-` prefix
 
 ### Channel Routing Not Visible
 If channel connections don't appear in the visualizer:

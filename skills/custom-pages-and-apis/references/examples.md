@@ -1,10 +1,10 @@
 # Complete Examples
 
-Working examples to adapt. All assume the default prefix (`/custom`).
+Working examples to adapt. All assume the default prefix (`/custom`). `Layout` already adds page padding, so the examples don't add their own outer padding.
 
 ## 1. Team page with colocated partials
 
-Full-width page (`sidebar={false}`), catalog data + a reusable partial.
+Page without the resource sidebar (`sidebar={false}`), catalog data + a reusable partial. Team `members` are references (`{ id, collection }`), so each one is looked up in `getUsers()` to get the person's name and role.
 
 ```astro
 ---
@@ -29,12 +29,12 @@ import Layout from '@catalog/layouts/Layout.astro';
 import TeamMember from './_components/TeamMember.astro';
 import { getTeams, getUsers } from '@catalog/utils';
 
-const teams = await getTeams();
-const users = await getUsers();
+const [teams, users] = await Promise.all([getTeams(), getUsers()]);
+const usersById = new Map(users.map((user) => [user.data.id, user]));
 ---
 
 <Layout title="Our Team" description="The people behind our architecture" sidebar={false}>
-  <div class="mx-auto max-w-5xl px-8 py-12">
+  <div class="mx-auto max-w-5xl">
     <h1 class="text-3xl font-bold text-[rgb(var(--ec-page-text))]">Our Team</h1>
     <p class="mt-2 text-[rgb(var(--ec-page-text-muted))]">
       {teams.length} teams · {users.length} people
@@ -44,9 +44,10 @@ const users = await getUsers();
       <section class="mt-10">
         <h2 class="text-xl font-semibold text-[rgb(var(--ec-page-text))]">{team.data.name}</h2>
         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(team.data.members ?? []).map((member) => (
-            <TeamMember name={member.data?.name ?? member.id} role={member.data?.role} />
-          ))}
+          {(team.data.members ?? []).map((member) => {
+            const user = usersById.get(member.id);
+            return <TeamMember name={user?.data.name ?? member.id} role={user?.data.role} />;
+          })}
         </div>
       </section>
     ))}
@@ -101,7 +102,7 @@ const stats = await Promise.all(
 ---
 
 <Layout title="GitHub Insights" sidebar={false}>
-  <div class="mx-auto max-w-4xl px-8 py-10">
+  <div class="mx-auto max-w-4xl">
     <GithubNav />
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
       {stats.map(({ repo, stars, issues }) => (
@@ -134,7 +135,7 @@ const data = await res.json();
 ---
 
 <Layout title={`GitHub — ${repo}`} sidebar={false}>
-  <div class="mx-auto max-w-4xl px-8 py-10">
+  <div class="mx-auto max-w-4xl">
     <GithubNav />
     <h1 class="mt-6 text-2xl font-bold text-[rgb(var(--ec-page-text))]">{data.full_name}</h1>
     <p class="mt-2 text-[rgb(var(--ec-page-text-muted))]">{data.description}</p>
@@ -159,16 +160,16 @@ const [domains, services, events, commands, queries] = await Promise.all([
 ]);
 
 const cards = [
-  { label: 'Domains', count: domains.length, href: '/architecture/domains' },
-  { label: 'Services', count: services.length, href: '/architecture/services' },
-  { label: 'Events', count: events.length, href: '/architecture/messages' },
-  { label: 'Commands', count: commands.length, href: '/architecture/messages' },
-  { label: 'Queries', count: queries.length, href: '/architecture/messages' },
+  { label: 'Domains', count: domains.length, href: '/discover/domains' },
+  { label: 'Services', count: services.length, href: '/discover/services' },
+  { label: 'Events', count: events.length, href: '/discover/events' },
+  { label: 'Commands', count: commands.length, href: '/discover/commands' },
+  { label: 'Queries', count: queries.length, href: '/discover/queries' },
 ];
 ---
 
 <Layout title="Architecture Overview">
-  <div class="px-8 py-10">
+  <div>
     <h1 class="text-2xl font-bold text-[rgb(var(--ec-page-text))]">Architecture at a glance</h1>
     <div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
       {cards.map(({ label, count, href }) => (
@@ -196,30 +197,34 @@ const cards = [
 
 ## 4. Custom homepage
 
-`pages/homepage.astro` replaces the catalog landing page at `/` (it is NOT served under the prefix).
+`pages/homepage.astro` replaces the catalog landing page at `/` (it is NOT served under the prefix). It is already rendered inside the EventCatalog shell, so **don't wrap it in `Layout`**. EventCatalog's components are passed on `Astro.props.components`, including `CatalogDashboard` (the default dashboard homepage, with optional `title` and `description`). `@catalog/utils` imports work as usual.
 
 ```astro
 ---
 // pages/homepage.astro → /
-import Layout from '@catalog/layouts/Layout.astro';
 import { getDomains } from '@catalog/utils';
 
+const { CatalogDashboard } = Astro.props.components;
 const domains = await getDomains({ getAllVersions: false });
 ---
 
-<Layout title="Acme Architecture Hub" sidebar={false}>
-  <div class="mx-auto max-w-3xl px-8 py-16 text-center">
+<div class="not-prose">
+  <div class="mx-auto max-w-3xl py-8 text-center">
     <h1 class="text-4xl font-bold text-[rgb(var(--ec-page-text))]">Acme Architecture Hub</h1>
     <p class="mt-4 text-lg text-[rgb(var(--ec-page-text-muted))]">
       Explore our {domains.length} business domains, the services that power them, and the messages that connect them.
     </p>
     <div class="mt-8 flex justify-center gap-4">
-      <a href="/architecture/domains" class="rounded-md bg-[rgb(var(--ec-accent))] px-5 py-2 text-[rgb(var(--ec-accent-text))]">Explore domains</a>
-      <a href="/docs" class="rounded-md border border-[rgb(var(--ec-page-border))] px-5 py-2 text-[rgb(var(--ec-page-text))]">Read the docs</a>
+      <a href="/discover/domains" class="rounded-md bg-[rgb(var(--ec-accent))] px-5 py-2 text-[rgb(var(--ec-accent-text))]">Explore domains</a>
+      <a href="/docs/custom" class="rounded-md border border-[rgb(var(--ec-page-border))] px-5 py-2 text-[rgb(var(--ec-page-text))]">Read the docs</a>
     </div>
   </div>
-</Layout>
+
+  <CatalogDashboard title="At a glance" />
+</div>
 ```
+
+If `landingPage` is set in `eventcatalog.config.js`, `/` redirects there and this page isn't shown.
 
 ## 5. API endpoints
 

@@ -1,6 +1,6 @@
 ---
 name: c4-to-eventcatalog
-description: Converts C4 architecture models into EventCatalog documentation plans and hands off to catalog-documentation-creator for file generation. Use when user provides a C4 model, Structurizr DSL, C4-PlantUML, Mermaid C4, diagrams, or architecture descriptions and asks to create, update, reconcile, or map them into an EventCatalog project.
+description: Converts C4 architecture models into EventCatalog documentation plans and hands off to catalog-documentation-creator for file generation. Use when user provides a C4 model, Structurizr DSL, LikeC4, C4-PlantUML, Mermaid C4, diagrams, or architecture descriptions and asks to create, update, reconcile, or map them into an EventCatalog project.
 license: MIT
 metadata:
   author: eventcatalog
@@ -19,10 +19,11 @@ Always read `references/c4-mapping.md` before mapping a C4 model.
 
 When generating files, read the relevant `../catalog-documentation-creator/references/` files:
 
-- `domains.md`, `services.md`, `agents.md`
+- `domains.md`, `systems.md`, `services.md`, `agents.md`
 - `events.md`, `commands.md`, `queries.md`
 - `channels.md`, `containers.md`, `flows.md`
 - `components.md` for NodeGraph, Mermaid, wiki links, schemas, and MDX components
+- `diagrams.md` when the model has views worth keeping as standalone diagrams
 
 ## Workflow
 
@@ -30,7 +31,9 @@ Follow these phases in order.
 
 ### 1. Locate inputs
 
-Ask for the C4 source if it is not provided. Accept Structurizr DSL/JSON, C4-PlantUML, Mermaid C4, Markdown architecture docs, or image diagrams. Warn that source text is more reliable than image-only extraction.
+Ask for the C4 source if it is not provided. Accept Structurizr DSL/JSON, LikeC4 (`.c4`), C4-PlantUML, Mermaid C4, Markdown architecture docs, or image diagrams. Warn that source text is more reliable than image-only extraction.
+
+If the source is LikeC4, EventCatalog can also render its views directly with `<LikeC4View viewId="..." />` when the `.c4` files live in the catalog and the `likec4` package is installed. Offer to embed the relevant views in the mapped resources' bodies alongside the generated resources.
 
 Ask whether the user has an EventCatalog project. If yes, ask for the path and verify `eventcatalog.config.js` or known resource directories. If no, note that scaffolding happens during handoff through `catalog-documentation-creator`.
 
@@ -59,7 +62,7 @@ Preserve evidence. For source files, cite file paths and line numbers where poss
 
 ### 4. Map and reconcile
 
-Use `references/c4-mapping.md` to map each C4 element into one of `domain`, `service`, `agent`, `event`, `command`, `query`, `channel`, `container`, `flow`, `external system only`, `document inside resource body`, or `needs user decision`.
+Use `references/c4-mapping.md` to map each C4 element into one of `domain`, `system` (internal or `scope: external`), system `actor`, system `relationship`, `service`, `agent`, `event`, `command`, `query`, `channel`, `container`, `flow`, `document inside resource body`, or `needs user decision`.
 
 For existing catalogs, assign each mapped item a status: `new`, `update`, `unchanged`, or `investigate`.
 
@@ -71,7 +74,7 @@ Ask one question at a time. Each question must include:
 - The evidence that led to it
 - The consequence for generated EventCatalog resources
 
-Only ask about decisions that affect structure: domain boundaries, deployable service boundaries, agent classification, whether a relationship is an event/command/query/API call, whether an infrastructure node is a channel or data container, and whether to update an existing resource. Do not grill the user on prose, summaries, or cosmetic metadata.
+Only ask about decisions that affect structure: domain boundaries, which software systems are internal vs external, deployable service boundaries, agent classification, whether a relationship is an event/command/query/API call, whether an infrastructure node is a channel or data container, and whether to update an existing resource. Do not grill the user on prose, summaries, or cosmetic metadata.
 
 ### 6. Write the plan
 
@@ -86,7 +89,7 @@ After approval, use `catalog-documentation-creator` to create or update files. L
 ## Quality Rules
 
 - Do not create one EventCatalog resource per C4 box by default. Map based on responsibility, deployment, ownership, message flow, and EventCatalog usefulness.
-- Do not create empty domains. A domain must contain at least one service or agent.
+- Do not create empty domains. A domain must contain at least one system, subdomain, service, or agent.
 - Do not model every C4 component as an EventCatalog resource. Most components belong in the parent service body, a Mermaid diagram, or a flow.
 - Prefer explicit C4 relationship labels over inferred message types. If the relationship label is ambiguous, mark it as `needs user decision`.
 - Keep IDs consistent with the catalog. If creating a new catalog, prefer PascalCase resource IDs for business resources unless the user specifies otherwise.

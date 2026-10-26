@@ -38,6 +38,14 @@ The user confirms, corrects, or overrides. Move to the next question.
 
 > `OrderSupportAgent` reads order state (`src/agents/order-support/tools/order-lookup.ts`) but writes support case notes (`src/agents/order-support/tools/zendesk.ts`). I'd place it in **Orders** because its reasoning is centered on order lifecycle questions, with Support as tooling. Does that match how your team owns it?
 
+### When services deploy together as one product
+
+> `billing-api` (`services/billing-api/Dockerfile`), `billing-worker` (`services/billing-worker/Dockerfile`) and the `billing` Postgres database (`infra/billing.tf:12`) ship from one Helm chart (`charts/billing/Chart.yaml`). I'd group them as a **Billing** system inside the **Payments** domain, so the L1 diagram shows one box instead of three. Does that match how you think about it?
+
+### When the code calls a third party
+
+> `PaymentService` calls Stripe through the `stripe` SDK (`src/payments/stripe-client.ts:4`) with `STRIPE_API_KEY`. I'd model **Stripe** as an external system (`scope: external`) that the Billing system relates to ("charges cards via"), not as a service or a message. Keep it, or leave third parties out of the catalog?
+
 ### When code structure and team structure might disagree
 
 > The code groups by technical layer (`controllers/`, `services/`, `repositories/`), not by domain. If your team organizes by business capability (orders team, payments team, etc.), I'd use that instead of the folder structure. Which lens do you want the catalog to reflect — code structure or team structure?

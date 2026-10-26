@@ -6,15 +6,26 @@ Use this reference when turning a C4 model into an EventCatalog plan. The mappin
 
 | C4 concept | Default EventCatalog mapping | Notes |
 |---|---|---|
-| Person | Flow actor or prose reference | EventCatalog has no primary person resource for architecture actors. Link to users/teams only for ownership. |
-| Software System | Domain or service | Use `domain` when it is a bounded context containing multiple services/agents. Use `service` when it is one application/deployable boundary. External software systems can stay as external systems in flows unless the catalog should own documentation for them. |
+| Person | System `actors` entry | Add `actors: [{ id, name, label, direction }]` to each system the person uses (`direction: inbound` = person → system, `outbound` = system → person). Actors are drawn on the system's L1 diagram. Use a flow `actor` step for dynamic views. Link to users/teams only for ownership. |
+| Software System | System | Map each software system to a `system`. Its services, data stores and flows are listed in its `services`, `containers` and `flows` frontmatter. Use a `domain` for the bounded context that groups systems — not for the software system itself. |
+| External Software System | System with `scope: external` | Third-party/SaaS systems (Stripe, Salesforce) are systems with `scope: external`, drawn shaded. Keep their docs short: what it is and how internal systems use it. |
 | Container: application/API/worker | Service | Map deployable runtime units to services. Preserve technology and responsibility in the service body/frontmatter. |
 | Container: AI assistant/agent/runtime | Agent | Use `agent` only when it reasons, calls tools, uses a model, has memory, or owns autonomous workflow behavior. A plain service that calls an LLM once can remain a service. |
-| Container: database/cache/object store/vector store | Container | Nest under the owning service/agent when ownership is clear. Mark authoritative vs projection/cache when known. |
+| Container: database/cache/object store/vector store | Container | Set `container_type` (`database`, `cache`, `objectStore`, `searchIndex`, `dataWarehouse`, `dataLake`, `externalSaaS`, `other`) and `technology`. Link it with `writesTo`/`readsFrom` on services/agents and the system's `containers` list — folder placement doesn't link it. Mark authoritative vs projection/cache when known. |
 | Container: queue/topic/event bus/API gateway | Channel | Use channels for transport/routing infrastructure. Record protocols and routing where present. |
 | Component | Usually document inside parent service | Promote to service/agent/container/message only if independently deployed, owned, consumed across a boundary, or represented as infrastructure/data/message contract. |
 | Dynamic view | Flow | Map ordered interactions to EventCatalog flow steps. |
 | Deployment node | Body content or infrastructure notes | EventCatalog resource creation is usually unnecessary unless it represents a channel/container that affects relationships. |
+
+### C4 views and EventCatalog diagram levels
+
+EventCatalog diagrams have three levels, which line up with C4 views:
+
+- **L1** — domains and systems with their relationships and actors (C4 System Context / Landscape)
+- **L2** — a system expanded into its services and data stores (C4 Container)
+- **L3** — adds messages and channels (no direct C4 equivalent; comes from `sends`/`receives`)
+
+So a C4 Context view becomes the system's L1 diagram once systems, actors and relationships are mapped — don't recreate it as a Mermaid diagram.
 
 ## Relationship Mapping
 
@@ -25,19 +36,20 @@ Use this reference when turning a C4 model into an EventCatalog plan. The mappin
 | "queries", "gets", "lists", "reads", HTTP GET | Query or readsFrom container, depending on whether it is an API contract or direct data access. |
 | HTTP POST/PUT/PATCH/DELETE request | Command when it changes state; otherwise document as service API relationship if no command name exists. |
 | Direct database read/write | Service/agent `readsFrom` or `writesTo` a container. |
+| Software system uses / integrates with another software system | Source system's `relationships: [{ id, label }]`. Always set `label` (e.g. "sends orders to") — a relationship without a label draws no edge. |
 | Topic, queue, event bus, exchange, stream | Channel. If the source and target both mention it, connect sends/receives through `to` and `from`. |
-| Calls third-party SaaS/API | External system in a flow, or service only if the catalog intentionally documents owned wrapper/integration details. |
+| Calls third-party SaaS/API | A system with `scope: external` plus a `relationships` entry from the calling system (default); or a service with `externalSystem: true` when it's one API rather than a system; or a container with `container_type: externalSaaS` when it's used as a data store. In flows, point a `system` step at it. |
 
 ## Domain Heuristics
 
-Use domains when the C4 model shows bounded contexts, business capabilities, or groups of related services. Signals include:
+Use domains when the C4 model shows bounded contexts, business capabilities, or groups of related systems. Systems sit inside domains (`domains/{Domain}/systems/{System}/`, listed in the domain's `systems` frontmatter); subdomains are one level deep. Signals include:
 
 - System names that represent business capabilities, such as Ordering, Payments, Fulfillment, Support.
 - C4 tags or groups for bounded contexts.
-- Multiple services/agents that share language, data ownership, and business process.
+- Multiple systems, services or agents that share language, data ownership, and business process.
 - Existing catalog domains that already match the model.
 
-Avoid creating a domain when the C4 model only has one service and no meaningful bounded context. If unsure, propose a single domain and ask.
+Avoid creating a domain when the C4 model only has one system or service and no meaningful bounded context. If unsure, propose a single domain and ask.
 
 ## Message Classification
 

@@ -34,6 +34,7 @@ Use resource docs for extra pages attached to a resource: ADR notes, runbooks, c
 ---
 title: Retry Failed Orders
 summary: Operational guide for retrying failed order processing.
+order: 1
 ---
 
 ## Procedure
@@ -43,27 +44,32 @@ summary: Operational guide for retrying failed order processing.
 3. Replay the message from the dead-letter queue.
 ```
 
-Optional category files can be created under docs folders:
+Resource doc frontmatter takes `title`, `summary`, `order` (position in the sidebar), `slug` and `badges`.
+
+Optional category files can be created under docs folders. They take only `label` and `position`:
 
 ```json
 {
   "label": "Runbooks",
-  "collapsed": false
+  "position": 1
 }
 ```
 
 Use `category.json` or `_category_.json` depending on the catalog's existing convention.
 
-## Custom Docs and Pages
+## Custom Docs
 
-**Location:** `docs/**/*.mdx` for custom documentation, and `pages/*.mdx` for pages.
+**Location:** `docs/**/*.mdx` (or `.md`)
 
-Use custom docs for general documentation that is not owned by a specific EventCatalog resource.
+Use custom docs for general documentation that is not owned by a specific EventCatalog resource. `title` and `summary` are required; `sidebar: { label, order }`, `slug`, `owners` and `badges` are optional.
 
 ```mdx
 ---
 title: Platform Onboarding
 summary: How teams publish resources into EventCatalog.
+sidebar:
+  label: Onboarding
+  order: 1
 ---
 
 ## Overview
@@ -71,6 +77,46 @@ summary: How teams publish resources into EventCatalog.
 This guide explains how teams contribute catalog resources and request reviews.
 ```
 
+Don't create `pages/*.mdx` for documentation. The catalog's `pages/` folder is for custom Astro pages and API routes (see the custom-pages-and-apis skill).
+
+## Usage Examples
+
+**Location:** An `examples/` folder inside an event, command or query, e.g. `events/OrderCreated/examples/basic.mdx`
+
+Each `.md`/`.mdx` file (optional `title` and `summary` frontmatter) is shown in the message's Usage Examples tab. Use them for example payloads and producer/consumer snippets.
+
+````mdx
+---
+title: Minimal order
+summary: The smallest valid OrderCreated payload.
+---
+
+```json
+{ "orderId": "ord_123", "customerId": "cus_456", "total": 42.5 }
+```
+````
+
+## Custom Resource Sidebars
+
+**File:** `sidebar.json` next to a resource's `index.mdx` (domains, systems, services, agents, messages, flows, containers, entities, data products, ADRs)
+
+When present it fully replaces that resource's generated sidebar: only what's listed renders, in that order. Only create one when the user asks to customise a resource's sidebar.
+
+```json
+{
+  "sections": [
+    "$quick-reference",
+    { "section": "$owners", "title": "Team" },
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": ["[[doc|runbooks/retry-failures]]", { "title": "Dashboard", "href": "https://grafana.example.com/d/orders" }]
+    }
+  ]
+}
+```
+
+Sections are predefined `$tokens` (e.g. `$quick-reference`, `$owners`) or custom groups `{ title, icon?, collapsed?, pages }`. Pages can be `[[type|Id@version]]` resource refs, `[[doc|path]]`, `[[spec|file]]`, `[[schema|event/id@version]]`, `{ title, href }` links or nested groups.
 ## Schemas
 
 Do not create generated `schemas` collection entries directly.
@@ -102,6 +148,6 @@ EventCatalog derives the `schemas` collection from these message references.
 
 The `designs` collection is loaded from `.ecstudio` files produced by EventCatalog Studio. Do not invent `.ecstudio` files unless the user explicitly asks for Studio design content and provides enough structure to generate valid JSON.
 
-## Internal/Enterprise Collections
+## Internal Collections
 
-`customPages`, `resourceDocs`, and `resourceDocCategories` may depend on enterprise/custom documentation features. Match the catalog's existing structure and configuration before generating those files.
+`customPages`, `resourceDocs` and `resourceDocCategories` are the collection names behind custom docs, resource docs and their category files. They're available in every catalog (no plan or license needed); match the catalog's existing structure when generating those files.

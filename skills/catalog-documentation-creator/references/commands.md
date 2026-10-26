@@ -15,8 +15,11 @@
 | `summary` | Yes | 1-2 sentence description of what this command does |
 | `owners` | Yes | Array of team or user IDs |
 | `schemaPath` | No | Path to schema file (e.g., `schema.json`) |
+| `schemas` | No | Array of schemas for multiple or named schemas: `path` (or `file`), `name`, `format`, `environments`, `default: true` for the one shown first. Use instead of `schemaPath` when there is more than one schema |
 | `badges` | No | Array of badge objects |
-| `operation` | No | Object with `method`, `path`, and `statusCodes` for REST operations |
+| `operation` | No | Object with `method` (`GET`, `POST`, `PUT`, `DELETE`, or `PATCH`), `path`, and `statusCodes` for REST operations |
+| `draft` | No | `true`, or `{ title?, message }` |
+| `deprecated` | No | `true`, or `{ message, date }` to explain the deprecation |
 
 
 ## Example 1: Command with REST Operation
@@ -110,3 +113,4 @@ The CancelShipment command cancels a shipment that has not yet been dispatched. 
 - Commands represent requests for action (writes/mutations)
 - Use `operation` field for REST-style commands to document method, path, and status codes
 - Include `<NodeGraph />` to show which services handle this command
+- Example payloads can go in an `examples/` folder inside the message folder; they appear in a **Usage Examples** tab with no frontmatter changes

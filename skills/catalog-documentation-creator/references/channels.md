@@ -17,8 +17,8 @@
 | `address` | No | The actual address/topic name |
 | `protocols` | No | Array of protocol strings (e.g., `kafka`, `azure-servicebus`, `aws-cross-account-bus`) |
 | `deliveryGuarantee` | No | `at-least-once`, `at-most-once`, or `exactly-once` |
-| `routes` | No | Array of channel IDs this channel routes messages to |
-| `parameters` | No | Object defining parameterized parts of the channel address |
+| `routes` | No | Array of channel pointers (`{ id, version?, parameters? }`) this channel routes messages to |
+| `parameters` | No | Object keyed by parameter name (e.g. `env`) for the `{placeholders}` in the address; each takes `enum`, `default`, `examples`, `description` |
 
 
 ## Channel Routing
@@ -59,6 +59,22 @@ receives:
 ```
 
 This creates the full picture: Service A → Channel → Service B
+
+Each `to`/`from` entry also accepts:
+
+- `version` — the channel version (defaults to latest)
+- `parameters` — values for a parameterised address, e.g. `{ env: prod }` for `orders.{env}.events`
+- `delivery_mode` — `push` (default), `pull`, or `push-pull`
+
+```yaml
+receives:
+  - id: OrderConfirmed
+    from:
+      - id: orders.{env}.events
+        parameters:
+          env: prod
+        delivery_mode: pull
+```
 
 ## Example 1: Channel with Routing and Parameters
 

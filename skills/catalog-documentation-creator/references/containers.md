@@ -1,6 +1,6 @@
 # Containers
 
-Containers represent infrastructure components that services interact with — databases, caches, message queues, object stores, read models, etc.
+Containers (data stores) represent infrastructure that services and agents read from or write to — databases, caches, object stores, search indexes, warehouses, read models, etc. Message queues and topics are not containers: document them as channels.
 
 ## Format
 
@@ -15,20 +15,23 @@ Containers represent infrastructure components that services interact with — d
 | `name` | Yes | Human-readable name |
 | `version` | Yes | Semver string (e.g., `0.0.1`) |
 | `summary` | Yes | Brief description of what this container stores/does |
-| `container_type` | No | Type of container (e.g., `database`, `cache`, `queue`, `storage`) |
+| `container_type` | Yes | MUST be one of: `database`, `cache`, `objectStore`, `searchIndex`, `dataWarehouse`, `dataLake`, `externalSaaS`, `other`. Any other value fails the build |
 | `technology` | No | Technology and version (e.g., `postgres@14`, `redis@7`, `elasticsearch@8`) |
 | `authoritative` | No | `true` if this is the system of record, `false` for read models/projections |
-| `access_mode` | No | `read`, `readWrite`, or `write` |
+| `purpose` | No | What the data is used for |
+| `access_mode` | No | `read`, `write`, `readWrite`, or `appendOnly` |
 | `classification` | No | MUST be one of: `public`, `internal`, `confidential`, `regulated` |
 | `retention` | No | Data retention period (e.g., `5y`, `30d`, `indefinite`) |
 | `residency` | No | Data residency/region (e.g., `eu-west-1`) |
 
+Only these fields (plus the common ones like `owners`, `badges` and `repository`) are allowed. Unknown frontmatter keys fail the build; put custom metadata in keys starting with `x-`.
+
 ## How Services Connect to Containers
 
-Services use `writesTo` and `readsFrom` fields in their frontmatter:
+Services and agents use `writesTo` and `readsFrom` fields in their frontmatter. This is what links them to a container; nesting a container folder under a service doesn't.
 
 ```yaml
-# In the service's index.mdx
+# In the service's (or agent's) index.mdx
 writesTo:
   - id: inventory-db
     version: 0.0.1

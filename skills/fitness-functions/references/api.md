@@ -16,7 +16,7 @@ export default defineFitnessFunction({
 });
 ```
 
-- It validates the definition (throws on a missing `id`, `name` or `run`, or an unknown `severity`) and returns it unchanged, typed.
+- It validates the definition (throws on a missing `id`, `name` or `run`, a non-string `description`, or an unknown `severity`) and returns it unchanged, typed.
 - Use it as the **default export** of the file. A plain object with the same shape also works, without the type checking.
 - `@eventcatalog/fitness` always resolves when the check loads a fitness function, even if the catalog hasn't installed it. Install it as a dev dependency only for editor types.
 
@@ -62,7 +62,7 @@ The read methods of `@eventcatalog/sdk`, with the same names and arguments. Ther
 
 | Area | Methods |
 |---|---|
-| Events, commands, queries | `getEvent(id, version?)`, `getEvents({ latestOnly? })`, `eventHasVersion`, `getExamplesFromEvent` (and the same for commands and queries) |
+| Events, commands, queries | `getEvent(id, version?)`, `getEvents({ latestOnly?, attachSchema? })`, `eventHasVersion`, `getExamplesFromEvent` (and the same for commands and queries) |
 | Messages and schemas | `getProducersAndConsumersForMessage(id, version?)`, `getSchemaForMessage(id, version?)` → `{ schema, fileName }`, `getMessageBySchemaPath`, `getConsumersOfSchema`, `getProducersOfSchema` |
 | Domains | `getDomain`, `getDomains`, `domainHasVersion`, `getUbiquitousLanguageFromDomain` |
 | Systems, services, agents | `getSystem(s)`, `systemHasVersion`, `getService(s)`, `serviceHasVersion`, `getSpecificationFilesForService`, `getAgent(s)`, `agentHasVersion` |
@@ -76,7 +76,8 @@ Notes:
 
 - Collection getters (`getEvents`, `getServices`, …) return `undefined` when there are none: use `?? []`.
 - Pass `{ latestOnly: true }` to collection getters unless the rule really is about every version.
-- `getGraph({ type, id, version? }, { depth?, flat? })` returns the resources reachable from a resource through its relationships. `{ flat: true }` gives `{ root, resources: [{ type, id, version }] }`. `{ depth: 1 }` limits it to direct relationships.
+- `getGraph({ type, id, version? }, { depth?, flat? })` returns the resources reachable from a resource through its relationships. The root can be any resource type except `diagram`, `team` and `user`. `{ flat: true }` gives `{ root, resources: [{ type, id, version }] }`, where `resources` includes the root itself. `{ depth: 1 }` limits it to direct relationships.
+- `attachSchema: true` on message getters adds each message's schema, for rules about schemas.
 - `getResourcesByProperty('x-tier', { in: [1, 2], types: ['service'], latestOnly: true })` finds resources by a custom `x-…` frontmatter property. Use `equals` for one value.
 - The fields a resource has are its frontmatter: services have `sends`, `receives`, `writesTo`, `readsFrom`, `owners`, `specifications`. Data stores have `container_type`, `classification`, and so on. Read a few `index.mdx` files to see what the catalog actually documents.
 
@@ -104,6 +105,7 @@ type FitnessViolation = {
 | `warning` | a `warning`-severity function returned violations |
 | `failed` | an `error`-severity function returned violations |
 | `error` | the function couldn't be evaluated: it threw, returned something invalid, couldn't be loaded, had no default export, had an invalid definition, reused another function's id, or its resource couldn't be found |
+| `not_run` | reserved in the types (printed as "Not run"); the check doesn't produce it today |
 
 Functions run one at a time, in path order. One function failing never stops the others.
 
@@ -143,6 +145,7 @@ Each run writes `.eventcatalog/fitness/results.json` (change it with `--output`)
 
 - `catalogRevision` is the catalog's git commit, or `null` outside a git repository.
 - `scope` is `null` for root functions. `error` results include `error: { message, stack? }`.
+- When a file's definition couldn't be read, its `id` falls back to the file's `source` path and its `name` to the file name without `.fitness.ts`.
 - `diagnostics` lists `.fitness.ts` files that weren't run because they're outside a `fitness/` folder.
 - A catalog with no fitness functions still gets a report (with `total: 0`), so "no rules" can't be mistaken for "no report".
 
@@ -155,16 +158,16 @@ npx @eventcatalog/cli [--dir <catalog>] fitness check [--output <path>] [--forma
 
 | Option | Default | |
 |---|---|---|
-| `--output <path>` | `.eventcatalog/fitness/results.json` | Where to write the report, relative to the catalog |
+| `--output <path>`, `-o` | `.eventcatalog/fitness/results.json` | Where to write the report, relative to the catalog |
 | `--format <format>` | `text` | `json` prints the report instead of the summary |
 
 | Exit code | Meaning |
 |---|---|
 | `0` | Every function passed, or only warned |
 | `1` | A function failed, or couldn't be evaluated |
-| `2` | The check couldn't run (e.g. the catalog directory doesn't exist) |
+| `2` | The check couldn't run (e.g. the catalog directory doesn't exist, or an unknown `--format`) |
 
-The catalog's `.env` file is loaded first, so fitness functions can read settings from `process.env`.
+`npx eventcatalog` uses the current directory as the catalog, or `PROJECT_DIR` when it's set. The catalog's `.env` file is loaded first, so fitness functions can read settings from `process.env`.
 
 ## Discovery rules
 
@@ -184,3 +187,8 @@ console.log(formatFitnessReport(report, { color: true }));
 writeFitnessReport(report, './my-catalog/.eventcatalog/fitness/results.json');
 process.exitCode = getFitnessExitCode(report);
 ```
+
+- `runFitnessCheck({ dir, output?, format?, color?, log?, error? })` does everything the CLI does in one call (evaluate, write the report, print) and returns the exit code (`0`, `1` or `2`).
+- `evaluateFitness` also takes `catalogRevision` and `evaluatedAt` (a `Date`), for a deterministic report.
+- Also exported: `discoverFitnessFiles`, `createReadOnlyCatalog`, `READ_ONLY_METHODS` and `DEFAULT_REPORT_PATH`.
+- Every type is exported (`FitnessViolation`, `FitnessContext`, `CatalogResource`, `CatalogResourceType`, `FitnessReport`, …), so helpers can be typed: `const violations: FitnessViolation[] = [];`.

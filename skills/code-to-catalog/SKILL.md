@@ -1,6 +1,6 @@
 ---
 name: code-to-catalog
-description: Turns a codebase into EventCatalog documentation through an evidence-based interview. Scans the code first, proposes an architectural model (domains, services, agents, messages, channels), grills the user on the structural decisions, produces a reviewable plan file, then hands off to catalog-documentation-creator. Use when user says "document my codebase in EventCatalog", "turn this repo into a catalog", "model my code as a catalog", "document my agents", "document my AI agents", "grill me on my architecture", "update my catalog from the code", "reconcile my catalog with my code", or "I don't know where to start documenting this codebase". Works for brand-new catalogs AND for updating existing catalogs that have drifted from the code.
+description: Turns a codebase into EventCatalog documentation through an evidence-based interview. Scans the code first, proposes an architectural model (domains, systems, services, agents, messages, channels, data stores), grills the user on the structural decisions, produces a reviewable plan file, then hands off to catalog-documentation-creator. Use when user says "document my codebase in EventCatalog", "turn this repo into a catalog", "model my code as a catalog", "document my agents", "document my AI agents", "grill me on my architecture", "update my catalog from the code", "reconcile my catalog with my code", or "I don't know where to start documenting this codebase". Works for brand-new catalogs AND for updating existing catalogs that have drifted from the code.
 license: MIT
 metadata:
   author: eventcatalog
@@ -51,10 +51,10 @@ Ask the user: **"Do you already have an EventCatalog project, or do you want to 
 
 **If they already have one:**
 
-- Ask for the path. Verify it's an EventCatalog project by checking for `eventcatalog.config.js` or the standard directories (`services/`, `agents/`, `events/`, `commands/`, `queries/`, `domains/`, `channels/`, `flows/`).
+- Ask for the path. Verify it's an EventCatalog project by checking for `eventcatalog.config.js` or the standard directories (`services/`, `agents/`, `events/`, `commands/`, `queries/`, `domains/`, `systems/`, `channels/`, `containers/`, `flows/`).
 - Build an inventory of what already exists. If the EventCatalog MCP server is connected, use `getResources`, `getResource`, `findResourcesByOwner`. Otherwise read the filesystem directly and parse the frontmatter of each `index.md`/`index.mdx`.
 - Record for each resource: `id`, `name`, `version`, `type`, `summary`, and (for services and agents) `sends` / `receives` relationships.
-- Note the catalog's conventions: nested (`domains/X/services/Y/events/Z`) vs flat, PascalCase vs kebab-case IDs, existing owners, schema formats in use.
+- Note the catalog's conventions: nested (`domains/X/systems/S/services/Y/events/Z`) vs flat, PascalCase vs kebab-case IDs, existing owners, schema formats in use.
 
 **If they do not have a catalog:**
 
@@ -85,6 +85,20 @@ A service is an independently-deployable, independently-ownable unit. Signals:
 - Consumed by others over a network boundary (HTTP, message bus)
 
 When in doubt, mark as a **candidate** and grill the user in Phase 4.
+
+### Systems (candidates)
+
+A system groups the services, agents and data stores that make up one product or platform (it is what the L1 diagrams show inside a domain). Signals:
+
+- A repo, monorepo app group, or Helm umbrella chart / CDK app that deploys several services together
+- A product name used across several services (`billing-api`, `billing-worker`, `billing-db` → `Billing` system)
+- Shared data stores used only by a cluster of services
+
+A single-service codebase usually doesn't need a system. Mark candidates and confirm them in Topic 1.
+
+### External systems
+
+Third-party APIs and SaaS the code calls (Stripe, Twilio, Salesforce, SendGrid — SDK imports, base URLs, API-key env vars). These become **external systems** (`systems` with `scope: external`) that internal systems relate to. If the user prefers, a third party can instead be a service with `externalSystem: true`. Don't model them as messages or containers.
 
 ### Agent boundaries
 
@@ -121,7 +135,7 @@ Anywhere messages flow through named infrastructure:
 
 - Kafka topics (string literals passed to `producer.send({ topic: '...' })`)
 - RabbitMQ queues/exchanges
-- SNS topics, SQS queues
+- SNS topics, SQS queues (queues are always channels, never containers)
 - HTTP endpoints for query services (`GET /users/:id`)
 
 ### Domains (candidates)
@@ -135,13 +149,16 @@ Strong signals:
 
 Do not guess domains with low confidence. If unclear, propose "single domain = whole codebase" and let the user split in Phase 4.
 
-### Containers
+### Containers (data stores)
 
-Databases, caches, queues referenced in config, env vars, or client instantiation:
+Databases, caches, and stores referenced in config, env vars, or client instantiation. Each needs a `container_type` — one of `database`, `cache`, `objectStore`, `searchIndex`, `dataWarehouse`, `dataLake`, `externalSaaS`, `other` — with the engine in `technology`:
 
-- Postgres / MySQL / SQLite / Mongo / DynamoDB / Cassandra
-- Redis / Memcached
-- S3 buckets, GCS buckets
+- Postgres / MySQL / SQLite / Mongo / DynamoDB / Cassandra → `database`
+- Redis / Memcached → `cache`
+- S3 buckets, GCS buckets → `objectStore`
+- Elasticsearch / OpenSearch → `searchIndex`; Snowflake / BigQuery / Redshift → `dataWarehouse`
+
+Queues and topics are channels, not containers.
 
 ### Output of Phase 2
 
@@ -151,8 +168,15 @@ An internal draft map:
 domains:
   - name: <candidate>
     confidence: high|medium|low
+    systems: [...]
     services: [...]
     agents: [...]
+systems:
+  - name: <candidate>
+    scope: internal|external
+    services: [...]
+    containers: [...]
+    relationships: [<other system>: <label>]
 services:
   - name: <candidate>
     path: <dir>
@@ -177,7 +201,10 @@ messages:
     producer: <service or agent>
     consumer: <service, agent, or unknown>
 channels: [...]
-containers: [...]
+containers:
+  - name: <candidate>
+    container_type: database|cache|objectStore|...
+    technology: <postgres, redis, ...>
 ```
 
 Hold this map internally. You'll use it to drive Phase 3 and Phase 4.
@@ -215,9 +242,10 @@ Walk the topics in this order. Dependencies flow downward — resolve earlier to
 
 Ask about domain groupings first, because service placement depends on it.
 
-- If you detected clear domain candidates: present each with its recommended services and agents, then ask the user to confirm.
+- If you detected clear domain candidates: present each with its recommended systems, services and agents, then ask the user to confirm.
 - If you detected none: propose "single domain for the whole codebase" and ask whether they want to split.
 - For any ambiguous service or agent ("does `OrderSupportAgent` belong to `Orders` or its own `Support` domain?"), grill it.
+- Then confirm system groupings inside each domain ("`billing-api`, `billing-worker` and `billing-db` deploy together — group them as a `Billing` system?"), and which third parties become external systems.
 
 ### Topic 2: Service boundaries
 
@@ -291,21 +319,31 @@ Use this exact structure:
 
 ## Domains
 - **Orders** (status: new)
-  - Services: OrderService, ShippingService
+  - Systems: OrderManagement
   - Agents: OrderSupportAgent
   - Rationale: both deal with the order lifecycle; confirmed with user
 
 - **Payments** (status: unchanged)
   - Services: PaymentService
 
+## Systems
+- **OrderManagement** (internal, status: new)
+  - Domain: Orders
+  - Services: OrderService, ShippingService
+  - Containers: orders-db
+  - Relationships: Stripe ("charges cards via")
+
+- **Stripe** (external, status: new) — called from /services/orders/payments.ts
+
 ## Services
 ### OrderService (status: new)
 - Domain: Orders
+- System: OrderManagement
 - Path in code: /services/orders
 - Receives: PlaceOrder (command)
 - Sends: OrderPlaced (event), OrderCancelled (event)
 - Channels: orders.commands, orders.events
-- Containers: orders-db (postgres)
+- Containers: orders-db (database, postgres)
 
 ### PaymentService (status: update)
 - Domain: Payments
@@ -341,7 +379,7 @@ Use this exact structure:
 - orders.commands (Kafka topic, status: new)
 
 ## Containers
-- orders-db (postgres, status: new) — used by OrderService
+- orders-db (database, technology: postgres, status: new) — used by OrderService
 
 ## Open decisions / rationale
 - Classified `CancelOrder` as a command (user confirmed — it expects a handler)
@@ -389,10 +427,10 @@ Let the user know:
 Before finishing, verify:
 
 1. The plan file exists at the agreed path.
-2. Every domain, service, agent, message, channel, and container has a status: `new` / `update` / `unchanged` / `investigate`.
+2. Every domain, system, service, agent, message, channel, and container has a status: `new` / `update` / `unchanged` / `investigate`.
 3. Every `update` item lists what specifically drifted.
 4. Every `investigate` item is flagged, not deleted.
 5. Message classifications (event / command / query) were either confirmed by the user or clearly recommended with evidence.
-6. Service-to-domain and agent-to-domain mapping is explicit for every service and agent.
+6. Service-to-domain (or service-to-system) and agent-to-domain mapping is explicit for every service and agent.
 7. No per-resource grilling happened (summaries, owners, schemas — those are for `catalog-documentation-creator`).
 8. If handing off, `catalog-documentation-creator` has the plan path and instructions to skip `unchanged`.

@@ -13,9 +13,8 @@
 |-------|----------|-------------|
 | `id` | Yes | Unique identifier in kebab-case (e.g., `full-stack`) |
 | `name` | Yes | Human-readable team name |
-| `summary` | Yes | Brief team description |
+| `summary` | No | Brief team description (recommended) |
 | `members` | No | Array of user IDs |
-| `ownedAgents` | No | Array of agent IDs owned by this team |
 | `email` | No | Team email address |
 | `slackDirectMessageUrl` | No | Slack channel URL |
 | `msTeamsDirectMessageUrl` | No | MS Teams channel URL |
@@ -64,7 +63,6 @@ The Full Stack Team is responsible for developing and maintaining both the front
 | `role` | No | Job title/role |
 | `avatarUrl` | No | URL to profile image |
 | `email` | No | Email address |
-| `ownedAgents` | No | Array of agent IDs owned by this user |
 | `slackDirectMessageUrl` | No | Slack DM URL |
 | `msTeamsDirectMessageUrl` | No | MS Teams DM URL |
 
@@ -100,4 +98,5 @@ With over a decade of experience in the tech industry, I focus on building scala
 - User IDs are referenced in `owners` arrays across agents, services, events, domains, etc.
 - Team IDs are also valid in `owners` arrays
 - `members` in a team reference user IDs
-- Use `ownedAgents` when you want a team or user page to explicitly list owned agent resources
+- Ownership comes only from the `owners` array on each resource. Don't set `ownedAgents`, `ownedServices` or other `owned*` fields on a team or user — EventCatalog recomputes them from `owners` and discards anything in frontmatter
+- If the catalog syncs users and teams from a directory source (`directory.sources` in `eventcatalog.config.js`), don't hand-write files for the synced users and teams; reference their IDs in `owners` and `members` instead

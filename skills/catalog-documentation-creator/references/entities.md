@@ -32,9 +32,13 @@ Entities document domain concepts, aggregates, business objects, and persisted m
 | `description` | No | Human-readable explanation |
 | `references` | No | Referenced entity ID |
 | `referencesIdentifier` | No | Referenced entity identifier field |
+| `referenceTarget` | No | Set to `entity` to link to the whole referenced entity rather than one of its fields |
 | `relationType` | No | Relationship label such as `hasOne`, `hasMany`, or `belongsTo` |
 | `enum` | No | Allowed values |
-| `items` | No | Object describing array item type |
+| `properties` | No | Nested property definitions, for object-typed properties |
+| `items` | No | Object describing the array item `type`, with optional nested `properties` |
+
+Unknown frontmatter keys fail the build; put custom metadata in keys starting with `x-`.
 
 ## Example
 
@@ -100,3 +104,4 @@ The Order entity captures all details related to a customer's purchase request. 
     - id: Order
   ```
 - Use `[[entity|Order]]` or `[[Order]]` in prose to link to entities.
+- To show a diagram of a domain's or service's entities and their relationships (the "Entity Diagram"), add `<EntityMap />` to the domain or service page.

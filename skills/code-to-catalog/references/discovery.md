@@ -205,6 +205,8 @@ File extensions that signal message contracts:
 
 Schema files are **strong evidence**. If a schema has the same name as a detected message, use the schema as the message's payload contract and note its format for `catalog-documentation-creator`.
 
+Whole API specs belong to the service that serves them: note OpenAPI, AsyncAPI and GraphQL files (and WSDL, XSD or other contracts, as `type: generic`) so `catalog-documentation-creator` can attach them as the service's `specifications`. If a codebase has many OpenAPI or AsyncAPI specs, mention that EventCatalog generators can import them (`create-eventcatalog` has `openapi`, `asyncapi`, `graphql`, `eventbridge`, `confluent` and `amazon-api-gateway` templates).
+
 ## Channels
 
 A channel is any named piece of messaging infrastructure. Look for:
@@ -229,7 +231,17 @@ Databases, caches, and stores referenced in the code. Evidence:
 - **Migrations / schema** — `prisma/schema.prisma`, `migrations/` dir, `alembic/versions/`
 - **ORM models** — a project with ORM models pointing at one DB usually has one container per service
 
-Tag each container with the service that uses it, and a type (`postgres`, `redis`, `dynamodb`, `s3`, etc.).
+Tag each container with the service that uses it, a `container_type` (`database`, `cache`, `objectStore`, `searchIndex`, `dataWarehouse`, `dataLake`, `externalSaaS`, `other`) and a `technology` (`postgres`, `redis`, `dynamodb`, `s3`, etc.). Queues and topics are channels, not containers.
+
+## External systems
+
+Third-party services the code calls over the network:
+
+- **SDK imports** — `stripe`, `twilio`, `@sendgrid/mail`, `@salesforce/*`, `@slack/web-api`
+- **Base URLs** — `https://api.stripe.com`, `https://api.twilio.com`
+- **API-key env vars** — `STRIPE_SECRET_KEY`, `TWILIO_AUTH_TOKEN`, `SENDGRID_API_KEY`
+
+Propose each as an external system (`systems` with `scope: external`) and record which internal service or system calls it, and how (e.g. "charges cards via").
 
 ## Domains
 

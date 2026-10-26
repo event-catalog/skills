@@ -16,7 +16,7 @@ Agents document AI agents, copilots, autonomous workers, and LLM-powered assista
 | `version` | Yes | Semver string (e.g., `0.0.1`) |
 | `summary` | Yes | 1-2 sentence description of the agent |
 | `owners` | Yes | Array of team or user IDs |
-| `model` | No | Object with `provider`, `name`, and optional `version` |
+| `model` | No | Object with `provider`, `name`, and `version` (all optional) |
 | `tools` | No | Array of tools the agent can call |
 | `sends` | No | Array of events, commands, or queries this agent produces |
 | `receives` | No | Array of events, commands, or queries this agent consumes |
@@ -25,7 +25,7 @@ Agents document AI agents, copilots, autonomous workers, and LLM-powered assista
 | `flows` | No | Array of business flows this agent participates in |
 | `repository` | No | Object with `language` and `url` |
 | `badges` | No | Array of badge objects |
-| `deprecated` | No | Object with `date` and `message` for deprecated agents |
+| `deprecated` | No | `true`, or `{ date, message }` for deprecated agents |
 
 ## Model and Tools
 
@@ -144,5 +144,6 @@ domains/E-Commerce/subdomains/Orders/agents/OrderSupportAgent/index.mdx
 - Include `<AgentTools />` when `tools` are defined
 - Include `<NodeGraph />` for architecture visualization
 - Use `readsFrom`/`writesTo` for data stores and memory stores, not tools
+- `sends`/`receives` entries support the same `to`/`from`, `group`, `triggers`, and `fields` options as services (see `references/services.md`)
 - Use `tools` for callable APIs, MCP servers, functions, workflows, or SaaS integrations
 - Do not add `specifications`; agent resources do not support service API specifications

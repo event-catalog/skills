@@ -14,8 +14,8 @@ Systems document software capabilities or external systems. A system is a collec
 | `id` | Yes | Unique system identifier, often kebab-case (e.g., `cart-system`, `payment-processing-system`) |
 | `name` | Yes | Human-readable name |
 | `version` | Yes | Semver string (e.g., `1.0.0`) |
-| `summary` | No | 1-2 sentence description of the system |
-| `owners` | No | Array of team or user IDs |
+| `summary` | Yes | 1-2 sentence description of the system (optional in the schema, but the EventCatalog linter requires it by default) |
+| `owners` | Yes | Array of team or user IDs (the linter requires at least one owner by default) |
 | `scope` | No | `internal` or `external`. Defaults to `internal` |
 | `services` | No | Array of services that belong to the system |
 | `containers` | No | Array of data stores/containers that belong to the system |
@@ -27,7 +27,7 @@ Systems document software capabilities or external systems. A system is a collec
 | `attachments` | No | External links or supporting documents |
 | `repository` | No | Object with `language` and `url` |
 | `badges` | No | Array of badge objects |
-| `deprecated` | No | Object with `date` and `message` for deprecated systems |
+| `deprecated` | No | `true`, or `{ date, message }` for deprecated systems |
 
 ## Folder Structure
 
@@ -83,7 +83,7 @@ Use `relationships` to connect this system to other systems. Relationships are o
 |-------|----------|-------------|
 | `id` | Yes | Target system ID |
 | `version` | No | Target system version. Defaults to latest |
-| `label` | No | Text shown on the relationship edge |
+| `label` | Yes (in practice) | Text shown on the relationship edge. Without a label the target system is shown but no edge is drawn |
 
 ```yaml
 relationships:
@@ -158,7 +158,7 @@ The Cart System owns active shopping carts. It accepts commands to add and remov
 
 <ContextDiagram />
 
-## Resource Diagram
+## Diagram
 
 <NodeGraph />
 

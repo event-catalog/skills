@@ -28,10 +28,11 @@ Domains can contain subdomains, systems, services, agents, flows, and other reso
 | `repository` | No | Object with `language` and `url` |
 | `sends` | No | Messages sent at the domain level |
 | `receives` | No | Messages received at the domain level |
+| `specifications` | No | Array of spec objects with `type` (`openapi`, `asyncapi`, `graphql`, or `generic`), `path`, and optional `name` |
 
 ## Nested Folder Structure
 
-Domains support deep nesting:
+Domains contain subdomains, systems, services, and agents. Subdomains are one level deep: `domains/{Domain}/subdomains/{Subdomain}/` is loaded, but a subdomain inside a subdomain is not.
 
 ```
 domains/E-Commerce/
